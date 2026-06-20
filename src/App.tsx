@@ -77,14 +77,14 @@ export default function App() {
       memberOnly: true,
     },
     { key: "settings", label: "設定", icon: Settings, memberOnly: true },
-    { key: "members", label: "メンバー管理", icon: Users, ownerOnly: true },
-    { key: "payments", label: "支払い集計", icon: BarChart2, ownerOnly: true },
     {
       key: "tasks",
       label: `依頼管理${taskCount > 0 ? `（${taskCount}）` : ""}`,
       icon: ClipboardList,
       ownerOnly: true,
     },
+    { key: "payments", label: "支払い集計", icon: BarChart2, ownerOnly: true },
+    { key: "members", label: "メンバー管理", icon: Users, ownerOnly: true },
   ];
 
   return (
