@@ -281,7 +281,7 @@ export default function Calendar({
                   {dayEvents.slice(0, 3).map((e) => (
                     <div
                       key={e.id}
-                      className={`cal-chip ${isOwner ? "draggable" : ""}`}
+                      className={`cal-chip ${isOwner ? "draggable" : ""} ${!isOwner && e.assigneeIds.includes(me.id) ? "my-chip" : ""}`}
                       style={{ background: EVENT_TYPE_COLOR[e.type] }}
                       title={e.title}
                       draggable={isOwner}
@@ -369,35 +369,37 @@ function DayPanel({
           </button>
         </div>
 
-      <div className="avail-box">
-        <strong>この日に空いているメンバー</strong>
-        <div className="avail-member-list">
-          {availList.length === 0 ? (
-            <span className="muted">登録なし</span>
-          ) : (
-            availList.map((a) => {
-              const member = users.find((u) => u.id === a.userId);
-              return (
-                <div key={a.userId} className="avail-member">
-                  <span className="avail-chip">{member?.name ?? ""}</span>
-                  <span className="avail-slots">
-                    {a.slots.map((s) => SLOT_LABEL[s]).join("・") || "—"}
-                  </span>
-                  {a.comment && <span className="avail-comment">{a.comment}</span>}
-                  {me.role === "owner" && member && (
-                    <button
-                      className="ghost mini req-btn"
-                      onClick={() => setRequestTo(member)}
-                    >
-                      依頼する
-                    </button>
-                  )}
-                </div>
-              );
-            })
-          )}
+      {me.role === "owner" && (
+        <div className="avail-box">
+          <strong>この日に空いているメンバー</strong>
+          <div className="avail-member-list">
+            {availList.length === 0 ? (
+              <span className="muted">登録なし</span>
+            ) : (
+              availList.map((a) => {
+                const member = users.find((u) => u.id === a.userId);
+                return (
+                  <div key={a.userId} className="avail-member">
+                    <span className="avail-chip">{member?.name ?? ""}</span>
+                    <span className="avail-slots">
+                      {a.slots.map((s) => SLOT_LABEL[s]).join("・") || "—"}
+                    </span>
+                    {a.comment && <span className="avail-comment">{a.comment}</span>}
+                    {member && (
+                      <button
+                        className="ghost mini req-btn"
+                        onClick={() => setRequestTo(member)}
+                      >
+                        依頼する
+                      </button>
+                    )}
+                  </div>
+                );
+              })
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       {me.role === "owner" && requestTo && (
         <RequestForm
@@ -430,8 +432,16 @@ function DayPanel({
 
       <div className="event-list">
         {events.length === 0 && <p className="muted">予定はありません</p>}
-        {events.map((e) => (
-          <div key={e.id} className="event-item">
+        {events.map((e) => {
+          const isMyEvent = me.role === "member" && e.assigneeIds.includes(me.id);
+          const coAssignees = isMyEvent
+            ? e.assigneeIds
+                .filter((id) => id !== me.id)
+                .map((id) => users.find((u) => u.id === id)?.name)
+                .filter((n): n is string => !!n)
+            : [];
+          return (
+          <div key={e.id} className={`event-item ${isMyEvent ? "my-event" : ""}`}>
             <span className="dot" style={{ background: EVENT_TYPE_COLOR[e.type] }} />
             <div className="event-body">
               <div className="event-title">
@@ -450,12 +460,16 @@ function DayPanel({
                   <MapLinks query={e.location} />
                 </div>
               )}
-              <div className="event-meta">
+              <div className={`event-meta ${isMyEvent ? "event-companions" : ""}`}>
                 <UserIcon size={11} strokeWidth={2} style={{verticalAlign:"middle",marginRight:3}} />
-                {e.assigneeIds
-                  .map((id) => users.find((u) => u.id === id)?.name)
-                  .filter(Boolean)
-                  .join(", ") || "未割当"}
+                {isMyEvent
+                  ? coAssignees.length > 0
+                    ? `同行: ${coAssignees.join(", ")}`
+                    : "一人で参加"
+                  : e.assigneeIds
+                      .map((id) => users.find((u) => u.id === id)?.name)
+                      .filter(Boolean)
+                      .join(", ") || "未割当"}
               </div>
               {e.note && <div className="event-note">{e.note}</div>}
             </div>
@@ -478,7 +492,8 @@ function DayPanel({
               )}
             </div>
           </div>
-        ))}
+          );
+        })}
       </div>
 
       {editing ? (
