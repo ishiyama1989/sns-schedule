@@ -961,13 +961,13 @@ label input, label select, label textarea { margin-top: 6px; font-weight: 400; }
 .cal-cell.hit:hover { background: rgba(46,125,82,0.12); }
 /* 自分が参加する日（メンバー用）*/
 .cal-cell.my-day {
-  background: rgba(46,125,82,0.10);
+  background: rgba(210,48,48,0.08);
 }
-.cal-cell.my-day:hover { background: rgba(46,125,82,0.16); }
+.cal-cell.my-day:hover { background: rgba(210,48,48,0.14); }
 .cal-cell.my-day .cal-date {
-  color: var(--primary);
+  color: #c0392b;
   font-weight: 800;
-  background: rgba(46,125,82,0.16);
+  background: rgba(210,48,48,0.14);
   border-radius: 999px;
 }
 .cal-cell.my-day::after {
@@ -977,7 +977,7 @@ label input, label select, label textarea { margin-top: 6px; font-weight: 400; }
   left: 0;
   right: 0;
   height: 3px;
-  background: linear-gradient(90deg, var(--primary) 0%, #3aaa6e 100%);
+  background: linear-gradient(90deg, #c0392b 0%, #e05555 100%);
   opacity: 0.55;
 }
 .cal-hit-mark {
