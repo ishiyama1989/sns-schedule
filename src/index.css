@@ -1,15 +1,15 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 :root {
-  --bg: #fdf0f3;
+  --bg: #fef8f9;
   --card: #ffffff;
-  --line: #f0d5dc;
+  --line: #f5dfe7;
   --text: #1a0a0e;
-  --text-2: #3d2232;
-  --muted: #8b5c6a;
-  --primary: #c2607c;
-  --primary-d: #a04e68;
-  --primary-light: #fde8ef;
+  --text-2: #4a2e3a;
+  --muted: #b07a88;
+  --primary: #d9849c;
+  --primary-d: #c06880;
+  --primary-light: #fdeef5;
   --success: #1a9f6b;
   --success-light: #e3f6ef;
   --danger: #d94f5c;
