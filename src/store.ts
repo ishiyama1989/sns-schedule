@@ -100,7 +100,7 @@ export function seedIfEmpty(): void {
     {
       id: uid(),
       date: d(3),
-      type: "work",
+      type: "other",
       title: "投稿編集・予約",
       location: "リモート",
       assigneeIds: [member.id],

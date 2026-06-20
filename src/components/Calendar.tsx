@@ -3,6 +3,7 @@ import { Clock as ClockIcon, MapPin, User as UserIcon, Search, ChevronDown } fro
 import {
   EVENT_TYPE_COLOR,
   EVENT_TYPE_LABEL,
+  EVENT_TYPES,
   REQUEST_STATUS_LABEL,
   SLOT_LABEL,
   type EventType,
@@ -209,7 +210,7 @@ export default function Calendar({
         </div>
 
         <div className="legend">
-          {(Object.keys(EVENT_TYPE_LABEL) as EventType[]).map((t) => (
+          {EVENT_TYPES.map((t) => (
             <span key={t}>
               <i style={{ background: EVENT_TYPE_COLOR[t] }} /> {EVENT_TYPE_LABEL[t]}
             </span>
@@ -350,7 +351,7 @@ function DayPanel({
     return {
       id: uid(),
       date,
-      type: "work",
+      type: "shooting",
       title: "",
       location: "",
       assigneeIds: [],
@@ -566,9 +567,10 @@ function EventForm({
             value={draft.type}
             onChange={(e) => set("type", e.target.value as EventType)}
           >
-            <option value="work">稼働</option>
             <option value="shooting">撮影</option>
+            <option value="meeting">会議</option>
             <option value="delivery">納品</option>
+            <option value="other">その他</option>
           </select>
         </label>
         <label>
@@ -684,8 +686,9 @@ function RequestForm({
           種別
           <select value={type} onChange={(e) => setType(e.target.value as EventType)}>
             <option value="shooting">撮影</option>
-            <option value="work">稼働</option>
+            <option value="meeting">会議</option>
             <option value="delivery">納品</option>
+            <option value="other">その他</option>
           </select>
         </label>
         <label>

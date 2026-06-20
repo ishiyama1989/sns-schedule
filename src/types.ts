@@ -28,12 +28,12 @@ export interface User {
 }
 
 // 予定（いつ・どこで・誰が・何を）
-export type EventType = "work" | "shooting" | "delivery";
+export type EventType = "shooting" | "meeting" | "delivery" | "other";
 
 export interface ScheduleEvent {
   id: string;
   date: string; // "YYYY-MM-DD"
-  type: EventType; // work=通常稼働 / shooting=撮影 / delivery=納品
+  type: EventType; // shooting=撮影 / meeting=会議 / delivery=納品 / other=その他
   title: string; // 何をするか
   location: string; // どこで
   assigneeIds: string[]; // 誰が（複数可）
@@ -134,14 +134,21 @@ export interface CommentTemplate {
   text: string;
 }
 
-export const EVENT_TYPE_LABEL: Record<EventType, string> = {
-  work: "稼働",
+export const EVENT_TYPE_LABEL: Record<string, string> = {
   shooting: "撮影",
+  meeting: "会議",
   delivery: "納品",
+  other: "その他",
+  work: "稼働", // 旧データ互換
 };
 
-export const EVENT_TYPE_COLOR: Record<EventType, string> = {
-  work: "#3b82f6", // 青
+export const EVENT_TYPE_COLOR: Record<string, string> = {
   shooting: "#f59e0b", // オレンジ
+  meeting: "#8b5cf6", // 紫
   delivery: "#ef4444", // 赤
+  other: "#64748b",   // グレー
+  work: "#3b82f6",    // 旧データ互換（青）
 };
+
+// 凡例・選択肢に表示する順序
+export const EVENT_TYPES: EventType[] = ["shooting", "meeting", "delivery", "other"];
