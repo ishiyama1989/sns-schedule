@@ -227,7 +227,7 @@ export function openReceiptPdf(data: ReceiptData): void {
   }
   .toolbar button {
     font: inherit; font-weight: 700; font-size: 14px;
-    color: #fff; background: #c2607c;
+    color: #fff; background: #ff7a59;
     border: none; border-radius: 8px; padding: 10px 24px; cursor: pointer;
   }
   .toolbar button:hover { background: #e085a0; }

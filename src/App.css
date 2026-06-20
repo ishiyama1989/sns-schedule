@@ -1,5 +1,5 @@
 /* ==========================================
-   SNS Schedule — Sage Green Design System
+   SNS Schedule — Pop Energy Coral Design
    ========================================== */
 
 /* ===== 共通ユーティリティ ===== */
@@ -8,7 +8,7 @@
 .error { color: var(--danger); font-size: 13px; margin: 4px 0; }
 
 button.primary {
-  background: linear-gradient(135deg, #d9849c 0%, #eeaec0 100%);
+  background: linear-gradient(135deg, #ff7a59 0%, #ffa183 100%);
   color: #fff;
   border: none;
   padding: 10px 18px;
@@ -16,9 +16,9 @@ button.primary {
   font-weight: 600;
   font-size: 14px;
   letter-spacing: -0.01em;
-  box-shadow: 0 2px 8px rgba(217,132,156,0.28);
+  box-shadow: 0 2px 8px rgba(255,122,89,0.28);
 }
-button.primary:hover { filter: brightness(1.07); box-shadow: 0 4px 14px rgba(217,132,156,0.36); }
+button.primary:hover { filter: brightness(1.07); box-shadow: 0 4px 14px rgba(255,122,89,0.36); }
 button.primary:active { transform: translateY(1px); }
 button.primary:disabled { opacity: 0.4; cursor: default; filter: none; box-shadow: none; }
 button.full { width: 100%; }
@@ -32,7 +32,7 @@ button.ghost {
   font-size: 14px;
   font-weight: 500;
 }
-button.ghost:hover { background: #fef8f9; border-color: #f0d0da; color: var(--text); }
+button.ghost:hover { background: #fff8ee; border-color: #ffe0c8; color: var(--text); }
 button.ghost.danger { color: var(--danger); border-color: #f0c0c5; }
 button.ghost.danger:hover { background: var(--danger-light); }
 button.ghost.mini { font-size: 12px; padding: 5px 11px; }
@@ -51,7 +51,7 @@ input, select, textarea {
 }
 input:focus, select:focus, textarea:focus {
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(217,132,156,0.10);
+  box-shadow: 0 0 0 3px rgba(255,122,89,0.10);
 }
 
 label {
@@ -113,7 +113,7 @@ label input, label select, label textarea { margin-top: 6px; font-weight: 400; }
 .tab-switch {
   display: flex;
   gap: 4px;
-  background: #fef8f9;
+  background: #fff8ee;
   padding: 4px;
   border-radius: 9px;
   margin-bottom: 24px;
@@ -193,7 +193,7 @@ label input, label select, label textarea { margin-top: 6px; font-weight: 400; }
   background: var(--primary);
   border-radius: 50%;
   flex-shrink: 0;
-  box-shadow: 0 0 6px rgba(217,132,156,0.50);
+  box-shadow: 0 0 6px rgba(255,122,89,0.50);
 }
 .topbar-right { display: flex; align-items: center; gap: 14px; }
 .user-badge {
@@ -213,9 +213,9 @@ label input, label select, label textarea { margin-top: 6px; font-weight: 400; }
   text-transform: uppercase;
 }
 .role.owner {
-  background: rgba(217,132,156,0.10);
+  background: rgba(255,122,89,0.10);
   color: var(--primary);
-  border: 1px solid rgba(217,132,156,0.22);
+  border: 1px solid rgba(255,122,89,0.22);
 }
 .role.member {
   background: var(--bg);
@@ -234,7 +234,7 @@ label input, label select, label textarea { margin-top: 6px; font-weight: 400; }
 .topbar .ghost:hover {
   background: var(--bg);
   color: var(--text);
-  border-color: #f0d0da;
+  border-color: #ffe0c8;
 }
 
 .tabs {
@@ -302,16 +302,16 @@ label input, label select, label textarea { margin-top: 6px; font-weight: 400; }
   padding: 7px 13px;
 }
 .pending-banner.pay {
-  background: #fef8f9;
-  border-color: rgba(217,132,156,0.18);
+  background: #fff8ee;
+  border-color: rgba(255,122,89,0.18);
   border-left-color: var(--primary);
 }
 .pending-banner.pay .pending-banner-text { color: #1a5c34; }
-.pending-banner.pay .primary { background: linear-gradient(135deg, #d9849c, #eeaec0); box-shadow: 0 2px 8px rgba(217,132,156,0.28); }
+.pending-banner.pay .primary { background: linear-gradient(135deg, #ff7a59, #ffa183); box-shadow: 0 2px 8px rgba(255,122,89,0.28); }
 
 /* 報酬確認 */
 .pay-confirm-box { margin-top: 20px; border-radius: var(--radius); padding: 16px 18px; font-size: 14px; }
-.pay-confirm-box.requested { background: #fef8f9; border: 1.5px solid rgba(217,132,156,0.20); border-left: 3px solid var(--primary); }
+.pay-confirm-box.requested { background: #fff8ee; border: 1.5px solid rgba(255,122,89,0.20); border-left: 3px solid var(--primary); }
 .pay-confirm-box.confirmed { background: var(--success-light); border: 1.5px solid rgba(26,159,107,0.22); color: #0f6b42; }
 .pay-confirm-box.pending { background: var(--bg); border: 1.5px solid var(--line); color: var(--muted); }
 .pay-confirm-title { font-weight: 700; margin-bottom: 6px; }
@@ -348,7 +348,7 @@ label input, label select, label textarea { margin-top: 6px; font-weight: 400; }
   color: var(--text-2);
   box-shadow: var(--shadow-sm);
 }
-.cal-header button:hover { border-color: #f0d0da; background: #fef8f9; }
+.cal-header button:hover { border-color: #ffe0c8; background: #fff8ee; }
 .cal-header .today-btn { width: auto; padding: 0 14px; font-size: 12px; margin-left: auto; font-weight: 600; letter-spacing: 0.02em; }
 
 .legend {
@@ -381,7 +381,7 @@ label input, label select, label textarea { margin-top: 6px; font-weight: 400; }
   box-shadow: var(--shadow-sm);
 }
 .cal-wd {
-  background: #f4f9f5;
+  background: #fff8ee;
   text-align: center;
   padding: 9px 0;
   font-size: 10.5px;
@@ -403,24 +403,23 @@ label input, label select, label textarea { margin-top: 6px; font-weight: 400; }
   transition: background 0.10s;
   position: relative;
 }
-.cal-cell:hover { background: #f4faf6; }
-.cal-cell.dim { background: #fafcfa; }
-.cal-cell.dim .cal-date { color: #c5d5c8; }
+.cal-cell:hover { background: #fff4ef; }
+.cal-cell.dim { background: #fafafa; }
+.cal-cell.dim .cal-date { color: #d5c5b8; }
 .cal-cell.today .cal-date {
   background: var(--primary);
   color: #fff;
   border-radius: 999px;
-  box-shadow: 0 2px 6px rgba(217,132,156,0.34);
+  box-shadow: 0 2px 6px rgba(255,122,89,0.34);
 }
-.cal-cell.sel { outline: 2px solid var(--primary); outline-offset: -2px; background: #fef8f9; }
+.cal-cell.sel { outline: 2px solid var(--primary); outline-offset: -2px; background: #fff8ee; }
 .cal-cell.drag-over {
-  background: #e5f4ec;
+  background: #fff0e8;
   outline: 2px dashed var(--primary);
   outline-offset: -2px;
 }
 .cal-chip.draggable { cursor: grab; }
 .cal-chip.draggable:active { cursor: grabbing; opacity: 0.55; }
-/* 自分がアサインされた予定（メンバー用）*/
 .cal-chip.my-chip {
   box-shadow: 0 0 0 2px #fff, 0 2px 6px rgba(0,0,0,0.20);
   font-weight: 700;
@@ -441,8 +440,8 @@ label input, label select, label textarea { margin-top: 6px; font-weight: 400; }
 .cal-avail-name {
   font-size: 10px;
   font-weight: 600;
-  color: #bf6080;
-  background: rgba(217,132,156,0.10);
+  color: #e8852a;
+  background: rgba(255,122,89,0.10);
   border-radius: 3px;
   padding: 1px 5px;
   max-width: 100%;
@@ -451,7 +450,7 @@ label input, label select, label textarea { margin-top: 6px; font-weight: 400; }
   text-overflow: ellipsis;
 }
 .cal-avail-name.more { background: var(--bg); color: var(--muted); }
-.cal-avail-slots { font-size: 9px; font-weight: 500; color: #1a6e42; opacity: 0.85; margin-left: 2px; }
+.cal-avail-slots { font-size: 9px; font-weight: 500; color: #c86030; opacity: 0.85; margin-left: 2px; }
 
 .cal-events { margin-top: 2px; display: flex; flex-direction: column; gap: 2px; }
 .cal-chip {
@@ -472,7 +471,7 @@ label input, label select, label textarea { margin-top: 6px; font-weight: 400; }
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(5,12,7,0.52);
+  background: rgba(10,5,2,0.52);
   display: grid;
   place-items: center;
   padding: 20px;
@@ -486,7 +485,7 @@ label input, label select, label textarea { margin-top: 6px; font-weight: 400; }
   max-width: 100%;
   max-height: 88vh;
   overflow-y: auto;
-  box-shadow: 0 40px 80px rgba(5,12,7,0.36), 0 0 0 1px rgba(255,255,255,0.04);
+  box-shadow: 0 40px 80px rgba(10,5,2,0.36), 0 0 0 1px rgba(255,255,255,0.04);
   animation: pop 0.16s cubic-bezier(0.22, 1, 0.36, 1);
 }
 @keyframes pop {
@@ -510,8 +509,8 @@ label input, label select, label textarea { margin-top: 6px; font-weight: 400; }
 }
 .day-panel-head h3 { margin: 0; font-size: 17px; letter-spacing: -0.02em; }
 .avail-box {
-  background: #fef8f9;
-  border: 1.5px solid rgba(217,132,156,0.16);
+  background: #fff8ee;
+  border: 1.5px solid rgba(255,122,89,0.16);
   border-radius: var(--radius-sm);
   padding: 12px;
   margin: 12px 0;
@@ -519,8 +518,8 @@ label input, label select, label textarea { margin-top: 6px; font-weight: 400; }
 }
 .avail-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
 .avail-chip {
-  background: rgba(217,132,156,0.11);
-  color: #bf6080;
+  background: rgba(255,122,89,0.11);
+  color: #e8852a;
   padding: 3px 10px;
   border-radius: 999px;
   font-size: 12px;
@@ -528,14 +527,14 @@ label input, label select, label textarea { margin-top: 6px; font-weight: 400; }
 }
 .avail-member-list { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
 .avail-member { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
-.avail-slots { font-size: 12px; font-weight: 600; color: #bf6080; }
+.avail-slots { font-size: 12px; font-weight: 600; color: #e8852a; }
 .avail-comment { font-size: 12px; color: var(--muted); width: 100%; }
-.req-btn.mini { font-size: 12px; padding: 3px 10px; margin-left: auto; color: var(--primary); border-color: #f0d0da; }
+.req-btn.mini { font-size: 12px; padding: 3px 10px; margin-left: auto; color: var(--primary); border-color: #ffe0c8; }
 
 /* 依頼フォーム */
 .req-form {
-  background: #fef8f9;
-  border: 1.5px solid rgba(217,132,156,0.14);
+  background: #fff8ee;
+  border: 1.5px solid rgba(255,122,89,0.14);
   border-radius: var(--radius);
   padding: 14px;
   margin-bottom: 14px;
@@ -597,10 +596,9 @@ label input, label select, label textarea { margin-top: 6px; font-weight: 400; }
   padding: 12px;
   background: var(--card);
 }
-/* 自分がアサインされた予定（メンバー用）*/
 .event-item.my-event {
   border-left: 3px solid var(--primary);
-  background: rgba(217,132,156,0.04);
+  background: rgba(255,122,89,0.04);
 }
 .event-companions {
   color: var(--primary) !important;
@@ -618,7 +616,7 @@ label input, label select, label textarea { margin-top: 6px; font-weight: 400; }
 .tag {
   font-size: 10px;
   font-weight: 700;
-  background: rgba(217,132,156,0.08);
+  background: rgba(255,122,89,0.08);
   color: var(--primary);
   padding: 2px 8px;
   border-radius: 999px;
@@ -631,13 +629,13 @@ label input, label select, label textarea { margin-top: 6px; font-weight: 400; }
   font-weight: 600;
   color: var(--primary);
   text-decoration: none;
-  border: 1.5px solid rgba(217,132,156,0.18);
+  border: 1.5px solid rgba(255,122,89,0.18);
   border-radius: 999px;
   padding: 2px 11px;
-  background: rgba(217,132,156,0.05);
+  background: rgba(255,122,89,0.05);
   transition: background 0.12s;
 }
-.map-link:hover { background: rgba(217,132,156,0.11); }
+.map-link:hover { background: rgba(255,122,89,0.11); }
 .event-note {
   font-size: 12px;
   margin-top: 6px;
@@ -666,8 +664,8 @@ label input, label select, label textarea { margin-top: 6px; font-weight: 400; }
   color: var(--text-2);
   transition: all 0.12s;
 }
-.pick:hover { border-color: #f0d0da; background: #fef8f9; }
-.pick.on { background: var(--primary); color: #fff; border-color: var(--primary); box-shadow: 0 2px 6px rgba(217,132,156,0.25); }
+.pick:hover { border-color: #ffe0c8; background: #fff8ee; }
+.pick.on { background: var(--primary); color: #fff; border-color: var(--primary); box-shadow: 0 2px 6px rgba(255,122,89,0.25); }
 .form-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px; }
 
 
@@ -684,12 +682,12 @@ label input, label select, label textarea { margin-top: 6px; font-weight: 400; }
   cursor: pointer;
   transition: background 0.10s;
 }
-.avail-cell:hover { background: #f4faf6; }
-.avail-cell.dim { color: #c5d5c8; background: #fafcfa; }
-.avail-cell.on { background: rgba(217,132,156,0.06); }
+.avail-cell:hover { background: #fff4ef; }
+.avail-cell.dim { color: #d5c5b8; background: #fafafa; }
+.avail-cell.on { background: rgba(255,122,89,0.06); }
 .avail-cell.today .avail-day { color: var(--primary); font-weight: 800; }
 .avail-day { font-weight: 700; font-size: 12px; }
-.avail-tags { font-size: 10px; color: #bf6080; font-weight: 700; line-height: 1.4; text-align: left; }
+.avail-tags { font-size: 10px; color: #e8852a; font-weight: 700; line-height: 1.4; text-align: left; }
 
 /* 時間帯ピッカー */
 .slot-picker { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
@@ -703,17 +701,17 @@ label input, label select, label textarea { margin-top: 6px; font-weight: 400; }
   color: var(--text-2);
   transition: all 0.12s;
 }
-.slot-btn:hover { background: #fef8f9; border-color: #f0d0da; }
+.slot-btn:hover { background: #fff8ee; border-color: #ffe0c8; }
 .slot-btn.on {
   background: var(--primary);
   color: #fff;
   border-color: var(--primary);
-  box-shadow: 0 2px 8px rgba(217,132,156,0.28);
+  box-shadow: 0 2px 8px rgba(255,122,89,0.28);
 }
 .slot-btn.allday.on {
-  background: #bf6080;
-  border-color: #bf6080;
-  box-shadow: 0 2px 8px rgba(24,107,60,0.28);
+  background: #e8852a;
+  border-color: #e8852a;
+  box-shadow: 0 2px 8px rgba(232,133,42,0.28);
 }
 
 /* 定型文 */
@@ -739,7 +737,7 @@ label input, label select, label textarea { margin-top: 6px; font-weight: 400; }
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.tpl-insert:hover { background: rgba(217,132,156,0.06); color: var(--primary); }
+.tpl-insert:hover { background: rgba(255,122,89,0.06); color: var(--primary); }
 .tpl-del { border: none; border-left: 1.5px solid var(--line); background: transparent; padding: 0 10px; color: var(--muted); }
 .tpl-del:hover { background: var(--danger-light); color: var(--danger); }
 .tpl-add { display: flex; gap: 8px; }
@@ -764,7 +762,7 @@ label input, label select, label textarea { margin-top: 6px; font-weight: 400; }
   font-size: 14px;
 }
 .members-table th {
-  background: #fef9fa;
+  background: #fff8ee;
   font-size: 11px;
   font-weight: 700;
   color: var(--muted);
@@ -772,7 +770,7 @@ label input, label select, label textarea { margin-top: 6px; font-weight: 400; }
   text-transform: uppercase;
 }
 .members-table tr:last-child td { border-bottom: none; }
-.members-table tfoot td { border-bottom: none; background: #fef9fa; font-weight: 700; }
+.members-table tfoot td { border-bottom: none; background: #fff8ee; font-weight: 700; }
 .row-actions { display: flex; gap: 8px; }
 .row-actions button { font-size: 12px; padding: 5px 12px; }
 .member-name-btn {
@@ -783,7 +781,7 @@ label input, label select, label textarea { margin-top: 6px; font-weight: 400; }
   font-weight: 600;
   color: var(--primary);
   text-decoration: underline;
-  text-decoration-color: rgba(217,132,156,0.35);
+  text-decoration-color: rgba(255,122,89,0.35);
   text-underline-offset: 3px;
   cursor: pointer;
 }
@@ -810,7 +808,7 @@ label input, label select, label textarea { margin-top: 6px; font-weight: 400; }
   gap: 4px;
   box-shadow: var(--shadow-sm);
 }
-.pay-card.highlight { background: #fef8f9; border-color: rgba(217,132,156,0.22); }
+.pay-card.highlight { background: #fff8ee; border-color: rgba(255,122,89,0.22); }
 .pay-label { font-size: 11px; font-weight: 700; color: var(--muted); letter-spacing: 0.04em; text-transform: uppercase; }
 .pay-value { font-size: 24px; font-weight: 800; letter-spacing: -0.03em; color: var(--text); }
 .pay-card.highlight .pay-value { color: var(--primary); }
@@ -840,8 +838,8 @@ label input, label select, label textarea { margin-top: 6px; font-weight: 400; }
   color: var(--text-2);
   transition: all 0.12s;
 }
-.type-btn:hover { border-color: #f0d0da; background: #fef8f9; }
-.type-btn.on { background: var(--primary); color: #fff; border-color: var(--primary); box-shadow: 0 2px 6px rgba(217,132,156,0.25); }
+.type-btn:hover { border-color: #ffe0c8; background: #fff8ee; }
+.type-btn.on { background: var(--primary); color: #fff; border-color: var(--primary); box-shadow: 0 2px 6px rgba(255,122,89,0.25); }
 .type-btn:disabled { opacity: 0.4; }
 .recipient-saved { margin-bottom: 10px; }
 .recipient-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
@@ -866,11 +864,11 @@ label input, label select, label textarea { margin-top: 6px; font-weight: 400; }
   align-items: center;
   gap: 6px;
 }
-.recipient-pick:hover { background: rgba(217,132,156,0.06); }
+.recipient-pick:hover { background: rgba(255,122,89,0.06); }
 .recipient-tag {
   font-size: 10px;
   font-weight: 700;
-  background: rgba(217,132,156,0.08);
+  background: rgba(255,122,89,0.08);
   color: var(--primary);
   padding: 1px 7px;
   border-radius: 999px;
@@ -906,7 +904,7 @@ label input, label select, label textarea { margin-top: 6px; font-weight: 400; }
   border: 1.5px dashed var(--line);
   border-radius: var(--radius-sm);
   padding: 12px;
-  background: #f8fcf9;
+  background: #fff8ee;
 }
 .settings-actions { display: flex; justify-content: flex-end; margin-top: 4px; }
 
@@ -933,7 +931,7 @@ label input, label select, label textarea { margin-top: 6px; font-weight: 400; }
 .search-badge {
   font-size: 11px;
   font-weight: 700;
-  background: rgba(217,132,156,0.12);
+  background: rgba(255,122,89,0.12);
   color: var(--primary);
   padding: 1px 8px;
   border-radius: 999px;
@@ -948,8 +946,8 @@ label input, label select, label textarea { margin-top: 6px; font-weight: 400; }
 .search-pickers { margin-bottom: 16px; }
 .search-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; align-items: center; }
 .search-summary {
-  background: #fef8f9;
-  border: 1.5px solid rgba(217,132,156,0.16);
+  background: #fff8ee;
+  border: 1.5px solid rgba(255,122,89,0.16);
   border-radius: var(--radius);
   padding: 13px 16px;
   margin-bottom: 16px;
@@ -957,12 +955,9 @@ label input, label select, label textarea { margin-top: 6px; font-weight: 400; }
   font-weight: 500;
   color: var(--text-2);
 }
-.cal-cell.hit { background: rgba(217,132,156,0.07); }
-.cal-cell.hit:hover { background: rgba(217,132,156,0.12); }
-/* 自分が参加する日（メンバー用）*/
-.cal-cell.my-day {
-  background: #fde8e8;
-}
+.cal-cell.hit { background: rgba(255,122,89,0.07); }
+.cal-cell.hit:hover { background: rgba(255,122,89,0.12); }
+.cal-cell.my-day { background: #fde8e8; }
 .cal-cell.my-day:hover { background: #fbd5d5; }
 .cal-cell.my-day .cal-date {
   color: #c0392b;
@@ -983,8 +978,8 @@ label input, label select, label textarea { margin-top: 6px; font-weight: 400; }
 .cal-hit-mark {
   font-size: 10px;
   font-weight: 700;
-  color: #bf6080;
-  background: rgba(217,132,156,0.13);
+  color: #e8852a;
+  background: rgba(255,122,89,0.13);
   border-radius: 3px;
   padding: 1px 5px;
 }
@@ -1033,7 +1028,7 @@ label input, label select, label textarea { margin-top: 6px; font-weight: 400; }
   font-weight: 500;
   transition: all 0.15s;
 }
-.task-filter-btn:hover { background: #fef8f9; border-color: #f0d0da; color: var(--text); }
+.task-filter-btn:hover { background: #fff8ee; border-color: #ffe0c8; color: var(--text); }
 .task-filter-btn.active {
   background: var(--primary);
   border-color: var(--primary);
@@ -1041,7 +1036,7 @@ label input, label select, label textarea { margin-top: 6px; font-weight: 400; }
   font-weight: 600;
 }
 .task-filter-count {
-  background: rgba(217,132,156,0.12);
+  background: rgba(255,122,89,0.12);
   color: var(--primary);
   border-radius: 999px;
   padding: 0 6px;
@@ -1067,7 +1062,7 @@ label input, label select, label textarea { margin-top: 6px; font-weight: 400; }
 }
 .task-card:hover { box-shadow: var(--shadow); }
 .task-card.status-submitted { border-color: rgba(245,158,11,0.5); background: #fffbf0; }
-.task-card.status-completed { border-color: rgba(217,132,156,0.3); opacity: 0.75; }
+.task-card.status-completed { border-color: rgba(255,122,89,0.3); opacity: 0.75; }
 .task-card.status-rejected  { opacity: 0.6; }
 
 .task-card-head {
