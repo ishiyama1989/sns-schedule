@@ -1153,7 +1153,7 @@ label input, label select, label textarea { margin-top: 6px; font-weight: 400; }
   gap: 2px;
 }
 
-/* ===== レスポンシブ ===== */
+/* ===== レスポンシブ（タブレット以下） ===== */
 @media (max-width: 820px) {
   .cal-layout { flex-direction: column; align-items: stretch; }
   .day-panel { width: 100%; position: static; }
@@ -1161,4 +1161,62 @@ label input, label select, label textarea { margin-top: 6px; font-weight: 400; }
   .content { padding: 18px 16px; }
   .topbar { padding: 0 16px; }
   .task-form-row { flex-direction: column; gap: 0; }
+}
+
+/* ===== スマホ（640px以下） ===== */
+@media (max-width: 640px) {
+  /* ヘッダー */
+  .topbar { padding: 0 10px; height: 48px; }
+  .logo { font-size: 10px; letter-spacing: 0.06em; white-space: nowrap; }
+  .topbar-right { gap: 6px; }
+  .user-badge { font-size: 12px; gap: 5px; max-width: 90px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  .role { display: none; }
+  .logout-text { display: none; }
+  .topbar .ghost { padding: 6px 9px; }
+
+  /* タブ: 全タブを均等幅で1行表示、アイコン上＋テキスト下 */
+  .tabs {
+    padding: 0;
+    overflow-x: hidden;
+  }
+  .tabs button {
+    flex: 1;
+    flex-direction: column;
+    gap: 2px;
+    padding: 7px 2px;
+    font-size: 10px;
+    white-space: normal;
+    text-align: center;
+    min-width: 0;
+    letter-spacing: 0;
+    line-height: 1.2;
+  }
+
+  /* コンテンツ余白 */
+  .content { padding: 14px 12px; }
+
+  /* モーダル: 画面内に収める */
+  .modal-backdrop { padding: 12px; }
+  .day-panel.modal {
+    width: 100%;
+    max-width: calc(100vw - 24px);
+    max-height: 82vh;
+    overflow-y: auto;
+  }
+  .member-detail-modal { width: 100%; max-width: calc(100vw - 24px); }
+
+  /* フォーム内の横並びを縦積みに */
+  .task-form-row { flex-direction: column; gap: 0; }
+  .form-actions { flex-direction: column; gap: 8px; }
+  .form-actions button { width: 100%; }
+
+  /* カレンダー */
+  .cal-cell { min-height: 60px; }
+  .cal-chip { font-size: 10px; padding: 1px 4px; }
+  .cal-date { font-size: 13px; width: 24px; height: 24px; }
+  .section-head h2 { font-size: 18px; }
+
+  /* 支払い・テーブル */
+  .members-table { font-size: 13px; }
+  .members-table th, .members-table td { padding: 8px 6px; }
 }
