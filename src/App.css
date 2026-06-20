@@ -8,7 +8,7 @@
 .error { color: var(--danger); font-size: 13px; margin: 4px 0; }
 
 button.primary {
-  background: linear-gradient(135deg, #2e7d52 0%, #3aaa6e 100%);
+  background: linear-gradient(135deg, #c2607c 0%, #e085a0 100%);
   color: #fff;
   border: none;
   padding: 10px 18px;
@@ -16,9 +16,9 @@ button.primary {
   font-weight: 600;
   font-size: 14px;
   letter-spacing: -0.01em;
-  box-shadow: 0 2px 8px rgba(46,125,82,0.28);
+  box-shadow: 0 2px 8px rgba(194,96,124,0.28);
 }
-button.primary:hover { filter: brightness(1.07); box-shadow: 0 4px 14px rgba(46,125,82,0.36); }
+button.primary:hover { filter: brightness(1.07); box-shadow: 0 4px 14px rgba(194,96,124,0.36); }
 button.primary:active { transform: translateY(1px); }
 button.primary:disabled { opacity: 0.4; cursor: default; filter: none; box-shadow: none; }
 button.full { width: 100%; }
@@ -32,7 +32,7 @@ button.ghost {
   font-size: 14px;
   font-weight: 500;
 }
-button.ghost:hover { background: #f0f5f1; border-color: #b5ccbe; color: var(--text); }
+button.ghost:hover { background: #fdf0f3; border-color: #e0b5c2; color: var(--text); }
 button.ghost.danger { color: var(--danger); border-color: #f0c0c5; }
 button.ghost.danger:hover { background: var(--danger-light); }
 button.ghost.mini { font-size: 12px; padding: 5px 11px; }
@@ -51,7 +51,7 @@ input, select, textarea {
 }
 input:focus, select:focus, textarea:focus {
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(46,125,82,0.10);
+  box-shadow: 0 0 0 3px rgba(194,96,124,0.10);
 }
 
 label {
@@ -72,7 +72,7 @@ label input, label select, label textarea { margin-top: 6px; font-weight: 400; }
   display: grid;
   place-items: center;
   padding: 24px;
-  background: linear-gradient(145deg, #4a8c62 0%, #2e6e47 55%, #1e5435 100%);
+  background: linear-gradient(145deg, #d4849e 0%, #b86882 55%, #8a4464 100%);
 }
 .auth-card {
   background: #fff;
@@ -113,7 +113,7 @@ label input, label select, label textarea { margin-top: 6px; font-weight: 400; }
 .tab-switch {
   display: flex;
   gap: 4px;
-  background: #f0f5f2;
+  background: #fdf0f3;
   padding: 4px;
   border-radius: 9px;
   margin-bottom: 24px;
@@ -137,7 +137,7 @@ label input, label select, label textarea { margin-top: 6px; font-weight: 400; }
   margin-top: 22px;
   font-size: 12px;
   color: var(--muted);
-  background: #f5faf6;
+  background: #fdf5f7;
   padding: 12px 14px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--line);
@@ -148,7 +148,7 @@ label input, label select, label textarea { margin-top: 6px; font-weight: 400; }
   border: 1.5px solid var(--line);
   border-radius: var(--radius-sm);
   padding: 2px 14px 10px;
-  background: #f9fcfa;
+  background: #fdf8f9;
 }
 .reg-extra summary {
   cursor: pointer;
@@ -193,7 +193,7 @@ label input, label select, label textarea { margin-top: 6px; font-weight: 400; }
   background: var(--primary);
   border-radius: 50%;
   flex-shrink: 0;
-  box-shadow: 0 0 6px rgba(46,125,82,0.50);
+  box-shadow: 0 0 6px rgba(194,96,124,0.50);
 }
 .topbar-right { display: flex; align-items: center; gap: 14px; }
 .user-badge {
@@ -213,9 +213,9 @@ label input, label select, label textarea { margin-top: 6px; font-weight: 400; }
   text-transform: uppercase;
 }
 .role.owner {
-  background: rgba(46,125,82,0.10);
+  background: rgba(194,96,124,0.10);
   color: var(--primary);
-  border: 1px solid rgba(46,125,82,0.22);
+  border: 1px solid rgba(194,96,124,0.22);
 }
 .role.member {
   background: var(--bg);
@@ -234,7 +234,7 @@ label input, label select, label textarea { margin-top: 6px; font-weight: 400; }
 .topbar .ghost:hover {
   background: var(--bg);
   color: var(--text);
-  border-color: #b5ccbe;
+  border-color: #e0b5c2;
 }
 
 .tabs {
@@ -302,16 +302,16 @@ label input, label select, label textarea { margin-top: 6px; font-weight: 400; }
   padding: 7px 13px;
 }
 .pending-banner.pay {
-  background: #f0faf4;
-  border-color: rgba(46,125,82,0.18);
+  background: #fdf0f4;
+  border-color: rgba(194,96,124,0.18);
   border-left-color: var(--primary);
 }
 .pending-banner.pay .pending-banner-text { color: #1a5c34; }
-.pending-banner.pay .primary { background: linear-gradient(135deg, #2e7d52, #3aaa6e); box-shadow: 0 2px 8px rgba(46,125,82,0.28); }
+.pending-banner.pay .primary { background: linear-gradient(135deg, #c2607c, #e085a0); box-shadow: 0 2px 8px rgba(194,96,124,0.28); }
 
 /* 報酬確認 */
 .pay-confirm-box { margin-top: 20px; border-radius: var(--radius); padding: 16px 18px; font-size: 14px; }
-.pay-confirm-box.requested { background: #f0faf4; border: 1.5px solid rgba(46,125,82,0.20); border-left: 3px solid var(--primary); }
+.pay-confirm-box.requested { background: #fdf0f4; border: 1.5px solid rgba(194,96,124,0.20); border-left: 3px solid var(--primary); }
 .pay-confirm-box.confirmed { background: var(--success-light); border: 1.5px solid rgba(26,159,107,0.22); color: #0f6b42; }
 .pay-confirm-box.pending { background: var(--bg); border: 1.5px solid var(--line); color: var(--muted); }
 .pay-confirm-title { font-weight: 700; margin-bottom: 6px; }
@@ -348,7 +348,7 @@ label input, label select, label textarea { margin-top: 6px; font-weight: 400; }
   color: var(--text-2);
   box-shadow: var(--shadow-sm);
 }
-.cal-header button:hover { border-color: #b5ccbe; background: #f2f8f4; }
+.cal-header button:hover { border-color: #e0b5c2; background: #fdf0f4; }
 .cal-header .today-btn { width: auto; padding: 0 14px; font-size: 12px; margin-left: auto; font-weight: 600; letter-spacing: 0.02em; }
 
 .legend {
@@ -410,9 +410,9 @@ label input, label select, label textarea { margin-top: 6px; font-weight: 400; }
   background: var(--primary);
   color: #fff;
   border-radius: 999px;
-  box-shadow: 0 2px 6px rgba(46,125,82,0.34);
+  box-shadow: 0 2px 6px rgba(194,96,124,0.34);
 }
-.cal-cell.sel { outline: 2px solid var(--primary); outline-offset: -2px; background: #f0faf4; }
+.cal-cell.sel { outline: 2px solid var(--primary); outline-offset: -2px; background: #fdf0f4; }
 .cal-cell.drag-over {
   background: #e5f4ec;
   outline: 2px dashed var(--primary);
@@ -441,8 +441,8 @@ label input, label select, label textarea { margin-top: 6px; font-weight: 400; }
 .cal-avail-name {
   font-size: 10px;
   font-weight: 600;
-  color: #186b3c;
-  background: rgba(46,125,82,0.10);
+  color: #9e3b58;
+  background: rgba(194,96,124,0.10);
   border-radius: 3px;
   padding: 1px 5px;
   max-width: 100%;
@@ -510,8 +510,8 @@ label input, label select, label textarea { margin-top: 6px; font-weight: 400; }
 }
 .day-panel-head h3 { margin: 0; font-size: 17px; letter-spacing: -0.02em; }
 .avail-box {
-  background: #f0faf4;
-  border: 1.5px solid rgba(46,125,82,0.16);
+  background: #fdf0f4;
+  border: 1.5px solid rgba(194,96,124,0.16);
   border-radius: var(--radius-sm);
   padding: 12px;
   margin: 12px 0;
@@ -519,8 +519,8 @@ label input, label select, label textarea { margin-top: 6px; font-weight: 400; }
 }
 .avail-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
 .avail-chip {
-  background: rgba(46,125,82,0.11);
-  color: #186b3c;
+  background: rgba(194,96,124,0.11);
+  color: #9e3b58;
   padding: 3px 10px;
   border-radius: 999px;
   font-size: 12px;
@@ -528,14 +528,14 @@ label input, label select, label textarea { margin-top: 6px; font-weight: 400; }
 }
 .avail-member-list { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
 .avail-member { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
-.avail-slots { font-size: 12px; font-weight: 600; color: #186b3c; }
+.avail-slots { font-size: 12px; font-weight: 600; color: #9e3b58; }
 .avail-comment { font-size: 12px; color: var(--muted); width: 100%; }
-.req-btn.mini { font-size: 12px; padding: 3px 10px; margin-left: auto; color: var(--primary); border-color: #b5ccbe; }
+.req-btn.mini { font-size: 12px; padding: 3px 10px; margin-left: auto; color: var(--primary); border-color: #e0b5c2; }
 
 /* 依頼フォーム */
 .req-form {
-  background: #f0faf4;
-  border: 1.5px solid rgba(46,125,82,0.14);
+  background: #fdf0f4;
+  border: 1.5px solid rgba(194,96,124,0.14);
   border-radius: var(--radius);
   padding: 14px;
   margin-bottom: 14px;
@@ -600,7 +600,7 @@ label input, label select, label textarea { margin-top: 6px; font-weight: 400; }
 /* 自分がアサインされた予定（メンバー用）*/
 .event-item.my-event {
   border-left: 3px solid var(--primary);
-  background: rgba(46,125,82,0.04);
+  background: rgba(194,96,124,0.04);
 }
 .event-companions {
   color: var(--primary) !important;
@@ -618,7 +618,7 @@ label input, label select, label textarea { margin-top: 6px; font-weight: 400; }
 .tag {
   font-size: 10px;
   font-weight: 700;
-  background: rgba(46,125,82,0.08);
+  background: rgba(194,96,124,0.08);
   color: var(--primary);
   padding: 2px 8px;
   border-radius: 999px;
@@ -631,13 +631,13 @@ label input, label select, label textarea { margin-top: 6px; font-weight: 400; }
   font-weight: 600;
   color: var(--primary);
   text-decoration: none;
-  border: 1.5px solid rgba(46,125,82,0.18);
+  border: 1.5px solid rgba(194,96,124,0.18);
   border-radius: 999px;
   padding: 2px 11px;
-  background: rgba(46,125,82,0.05);
+  background: rgba(194,96,124,0.05);
   transition: background 0.12s;
 }
-.map-link:hover { background: rgba(46,125,82,0.11); }
+.map-link:hover { background: rgba(194,96,124,0.11); }
 .event-note {
   font-size: 12px;
   margin-top: 6px;
@@ -666,8 +666,8 @@ label input, label select, label textarea { margin-top: 6px; font-weight: 400; }
   color: var(--text-2);
   transition: all 0.12s;
 }
-.pick:hover { border-color: #b5ccbe; background: #f2f8f4; }
-.pick.on { background: var(--primary); color: #fff; border-color: var(--primary); box-shadow: 0 2px 6px rgba(46,125,82,0.25); }
+.pick:hover { border-color: #e0b5c2; background: #fdf0f4; }
+.pick.on { background: var(--primary); color: #fff; border-color: var(--primary); box-shadow: 0 2px 6px rgba(194,96,124,0.25); }
 .form-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px; }
 
 
@@ -686,10 +686,10 @@ label input, label select, label textarea { margin-top: 6px; font-weight: 400; }
 }
 .avail-cell:hover { background: #f4faf6; }
 .avail-cell.dim { color: #c5d5c8; background: #fafcfa; }
-.avail-cell.on { background: rgba(46,125,82,0.06); }
+.avail-cell.on { background: rgba(194,96,124,0.06); }
 .avail-cell.today .avail-day { color: var(--primary); font-weight: 800; }
 .avail-day { font-weight: 700; font-size: 12px; }
-.avail-tags { font-size: 10px; color: #186b3c; font-weight: 700; line-height: 1.4; text-align: left; }
+.avail-tags { font-size: 10px; color: #9e3b58; font-weight: 700; line-height: 1.4; text-align: left; }
 
 /* 時間帯ピッカー */
 .slot-picker { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
@@ -703,16 +703,16 @@ label input, label select, label textarea { margin-top: 6px; font-weight: 400; }
   color: var(--text-2);
   transition: all 0.12s;
 }
-.slot-btn:hover { background: #f2f8f4; border-color: #b5ccbe; }
+.slot-btn:hover { background: #fdf0f4; border-color: #e0b5c2; }
 .slot-btn.on {
   background: var(--primary);
   color: #fff;
   border-color: var(--primary);
-  box-shadow: 0 2px 8px rgba(46,125,82,0.28);
+  box-shadow: 0 2px 8px rgba(194,96,124,0.28);
 }
 .slot-btn.allday.on {
-  background: #186b3c;
-  border-color: #186b3c;
+  background: #9e3b58;
+  border-color: #9e3b58;
   box-shadow: 0 2px 8px rgba(24,107,60,0.28);
 }
 
@@ -739,7 +739,7 @@ label input, label select, label textarea { margin-top: 6px; font-weight: 400; }
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.tpl-insert:hover { background: rgba(46,125,82,0.06); color: var(--primary); }
+.tpl-insert:hover { background: rgba(194,96,124,0.06); color: var(--primary); }
 .tpl-del { border: none; border-left: 1.5px solid var(--line); background: transparent; padding: 0 10px; color: var(--muted); }
 .tpl-del:hover { background: var(--danger-light); color: var(--danger); }
 .tpl-add { display: flex; gap: 8px; }
@@ -764,7 +764,7 @@ label input, label select, label textarea { margin-top: 6px; font-weight: 400; }
   font-size: 14px;
 }
 .members-table th {
-  background: #f5faf6;
+  background: #fdf5f7;
   font-size: 11px;
   font-weight: 700;
   color: var(--muted);
@@ -772,7 +772,7 @@ label input, label select, label textarea { margin-top: 6px; font-weight: 400; }
   text-transform: uppercase;
 }
 .members-table tr:last-child td { border-bottom: none; }
-.members-table tfoot td { border-bottom: none; background: #f5faf6; font-weight: 700; }
+.members-table tfoot td { border-bottom: none; background: #fdf5f7; font-weight: 700; }
 .row-actions { display: flex; gap: 8px; }
 .row-actions button { font-size: 12px; padding: 5px 12px; }
 .member-name-btn {
@@ -783,7 +783,7 @@ label input, label select, label textarea { margin-top: 6px; font-weight: 400; }
   font-weight: 600;
   color: var(--primary);
   text-decoration: underline;
-  text-decoration-color: rgba(46,125,82,0.35);
+  text-decoration-color: rgba(194,96,124,0.35);
   text-underline-offset: 3px;
   cursor: pointer;
 }
@@ -810,7 +810,7 @@ label input, label select, label textarea { margin-top: 6px; font-weight: 400; }
   gap: 4px;
   box-shadow: var(--shadow-sm);
 }
-.pay-card.highlight { background: #f0faf4; border-color: rgba(46,125,82,0.22); }
+.pay-card.highlight { background: #fdf0f4; border-color: rgba(194,96,124,0.22); }
 .pay-label { font-size: 11px; font-weight: 700; color: var(--muted); letter-spacing: 0.04em; text-transform: uppercase; }
 .pay-value { font-size: 24px; font-weight: 800; letter-spacing: -0.03em; color: var(--text); }
 .pay-card.highlight .pay-value { color: var(--primary); }
@@ -840,8 +840,8 @@ label input, label select, label textarea { margin-top: 6px; font-weight: 400; }
   color: var(--text-2);
   transition: all 0.12s;
 }
-.type-btn:hover { border-color: #b5ccbe; background: #f2f8f4; }
-.type-btn.on { background: var(--primary); color: #fff; border-color: var(--primary); box-shadow: 0 2px 6px rgba(46,125,82,0.25); }
+.type-btn:hover { border-color: #e0b5c2; background: #fdf0f4; }
+.type-btn.on { background: var(--primary); color: #fff; border-color: var(--primary); box-shadow: 0 2px 6px rgba(194,96,124,0.25); }
 .type-btn:disabled { opacity: 0.4; }
 .recipient-saved { margin-bottom: 10px; }
 .recipient-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
@@ -866,11 +866,11 @@ label input, label select, label textarea { margin-top: 6px; font-weight: 400; }
   align-items: center;
   gap: 6px;
 }
-.recipient-pick:hover { background: rgba(46,125,82,0.06); }
+.recipient-pick:hover { background: rgba(194,96,124,0.06); }
 .recipient-tag {
   font-size: 10px;
   font-weight: 700;
-  background: rgba(46,125,82,0.08);
+  background: rgba(194,96,124,0.08);
   color: var(--primary);
   padding: 1px 7px;
   border-radius: 999px;
@@ -933,7 +933,7 @@ label input, label select, label textarea { margin-top: 6px; font-weight: 400; }
 .search-badge {
   font-size: 11px;
   font-weight: 700;
-  background: rgba(46,125,82,0.12);
+  background: rgba(194,96,124,0.12);
   color: var(--primary);
   padding: 1px 8px;
   border-radius: 999px;
@@ -948,8 +948,8 @@ label input, label select, label textarea { margin-top: 6px; font-weight: 400; }
 .search-pickers { margin-bottom: 16px; }
 .search-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; align-items: center; }
 .search-summary {
-  background: #f0faf4;
-  border: 1.5px solid rgba(46,125,82,0.16);
+  background: #fdf0f4;
+  border: 1.5px solid rgba(194,96,124,0.16);
   border-radius: var(--radius);
   padding: 13px 16px;
   margin-bottom: 16px;
@@ -957,8 +957,8 @@ label input, label select, label textarea { margin-top: 6px; font-weight: 400; }
   font-weight: 500;
   color: var(--text-2);
 }
-.cal-cell.hit { background: rgba(46,125,82,0.07); }
-.cal-cell.hit:hover { background: rgba(46,125,82,0.12); }
+.cal-cell.hit { background: rgba(194,96,124,0.07); }
+.cal-cell.hit:hover { background: rgba(194,96,124,0.12); }
 /* 自分が参加する日（メンバー用）*/
 .cal-cell.my-day {
   background: #fde8e8;
@@ -983,8 +983,8 @@ label input, label select, label textarea { margin-top: 6px; font-weight: 400; }
 .cal-hit-mark {
   font-size: 10px;
   font-weight: 700;
-  color: #186b3c;
-  background: rgba(46,125,82,0.13);
+  color: #9e3b58;
+  background: rgba(194,96,124,0.13);
   border-radius: 3px;
   padding: 1px 5px;
 }
@@ -1033,7 +1033,7 @@ label input, label select, label textarea { margin-top: 6px; font-weight: 400; }
   font-weight: 500;
   transition: all 0.15s;
 }
-.task-filter-btn:hover { background: #f0f5f1; border-color: #b5ccbe; color: var(--text); }
+.task-filter-btn:hover { background: #fdf0f3; border-color: #e0b5c2; color: var(--text); }
 .task-filter-btn.active {
   background: var(--primary);
   border-color: var(--primary);
@@ -1041,7 +1041,7 @@ label input, label select, label textarea { margin-top: 6px; font-weight: 400; }
   font-weight: 600;
 }
 .task-filter-count {
-  background: rgba(46,125,82,0.12);
+  background: rgba(194,96,124,0.12);
   color: var(--primary);
   border-radius: 999px;
   padding: 0 6px;
@@ -1067,7 +1067,7 @@ label input, label select, label textarea { margin-top: 6px; font-weight: 400; }
 }
 .task-card:hover { box-shadow: var(--shadow); }
 .task-card.status-submitted { border-color: rgba(245,158,11,0.5); background: #fffbf0; }
-.task-card.status-completed { border-color: rgba(46,125,82,0.3); opacity: 0.75; }
+.task-card.status-completed { border-color: rgba(194,96,124,0.3); opacity: 0.75; }
 .task-card.status-rejected  { opacity: 0.6; }
 
 .task-card-head {

@@ -227,10 +227,10 @@ export function openReceiptPdf(data: ReceiptData): void {
   }
   .toolbar button {
     font: inherit; font-weight: 700; font-size: 14px;
-    color: #fff; background: #2e7d52;
+    color: #fff; background: #c2607c;
     border: none; border-radius: 8px; padding: 10px 24px; cursor: pointer;
   }
-  .toolbar button:hover { background: #3aaa6e; }
+  .toolbar button:hover { background: #e085a0; }
   .hint { margin-top: 28px; font-size: 11.5px; color: #888; text-align: center; }
 
   @media print {
