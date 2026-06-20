@@ -1,0 +1,41 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --bg: #edf2ee;
+  --card: #ffffff;
+  --line: #d5e4d9;
+  --text: #0d1a12;
+  --text-2: #2a4236;
+  --muted: #5c7a68;
+  --primary: #2e7d52;
+  --primary-d: #226042;
+  --primary-light: #dff0e8;
+  --success: #1a9f6b;
+  --success-light: #e3f6ef;
+  --danger: #d94f5c;
+  --danger-light: #fceef0;
+  --warning: #c8933a;
+  --warning-light: #fdf4e3;
+  --header-bg: #ffffff;
+  --radius: 10px;
+  --radius-sm: 7px;
+  --shadow-sm: 0 1px 3px rgba(10,25,16,0.07), 0 0 0 1px rgba(10,25,16,0.04);
+  --shadow: 0 4px 14px rgba(10,25,16,0.09), 0 1px 3px rgba(10,25,16,0.05);
+  --shadow-lg: 0 20px 50px rgba(10,25,16,0.15), 0 4px 14px rgba(10,25,16,0.08);
+  font-family: 'Inter', system-ui, -apple-system, "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif;
+  font-feature-settings: 'cv01','cv03','cv04';
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body, #root { margin: 0; height: 100%; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+}
+
+button { font-family: inherit; cursor: pointer; transition: all 0.15s ease; }
+
+h1,h2,h3 { font-weight: 700; letter-spacing: -0.02em; }

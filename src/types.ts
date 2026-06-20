@@ -1,0 +1,147 @@
+// アプリ全体で使うデータ型の定義（プロトタイプ）
+
+export type Role = "owner" | "member";
+
+// デジタル印影（領収書に使用）
+export type StampShape = "circle" | "square";
+export type StampOrientation = "vertical" | "horizontal";
+export type StampFont = "mincho" | "gothic" | "maru" | "kaisho";
+export interface StampConfig {
+  text: string;
+  shape: StampShape;
+  orientation: StampOrientation;
+  font: StampFont;
+}
+
+export interface User {
+  id: string;
+  name: string;
+  password: string; // 4桁の数字。※プロトタイプ用。本番ではサーバ側でハッシュ化します
+  role: Role;
+  hourlyRate: number; // 時給（円）。オーナーが設定
+  // プロフィール（任意・領収書に反映）
+  postalCode?: string;
+  address?: string;
+  phone?: string;
+  email?: string;
+  stamp?: StampConfig;
+}
+
+// 予定（いつ・どこで・誰が・何を）
+export type EventType = "work" | "shooting" | "delivery";
+
+export interface ScheduleEvent {
+  id: string;
+  date: string; // "YYYY-MM-DD"
+  type: EventType; // work=通常稼働 / shooting=撮影 / delivery=納品
+  title: string; // 何をするか
+  location: string; // どこで
+  assigneeIds: string[]; // 誰が（複数可）
+  start: string; // "HH:MM"
+  end: string; // "HH:MM"
+  note: string;
+}
+
+// オーナーからメンバーへの依頼（申請）。メンバーが承認すると予定になる
+export type RequestStatus = "pending" | "approved" | "rejected";
+
+export interface AppRequest {
+  id: string;
+  date: string; // "YYYY-MM-DD"
+  fromUserId: string; // 申請したオーナー
+  toUserId: string; // 依頼されたメンバー
+  type: EventType;
+  title: string;
+  location: string;
+  start: string; // "HH:MM"
+  end: string; // "HH:MM"
+  note: string;
+  status: RequestStatus;
+}
+
+export const REQUEST_STATUS_LABEL: Record<RequestStatus, string> = {
+  pending: "承認待ち",
+  approved: "承認済み",
+  rejected: "却下",
+};
+
+// 領収書の宛名（宛名帳）。個人=様 / 法人=御中
+export type RecipientType = "individual" | "corporate";
+
+export interface Recipient {
+  id: string;
+  userId: string; // 登録したメンバー
+  name: string;
+  type: RecipientType;
+}
+
+export const HONORIFIC: Record<RecipientType, string> = {
+  individual: "様",
+  corporate: "御中",
+};
+
+export const RECIPIENT_TYPE_LABEL: Record<RecipientType, string> = {
+  individual: "個人",
+  corporate: "法人",
+};
+
+// 報酬の確認依頼（オーナーが確定 → メンバーが確認 → 領収書発行）
+export type PayConfirmStatus = "requested" | "confirmed";
+
+export interface PayConfirmation {
+  id: string;
+  userId: string; // 対象メンバー
+  quarter: string; // 対象四半期 "2026-Q2"
+  amount: number; // 確定金額
+  hours: number;
+  status: PayConfirmStatus; // requested=確認依頼中 / confirmed=確認済み
+  requestedAt: string; // "YYYY-MM-DD"
+  confirmedAt?: string;
+}
+
+// メンバーの空き状況
+// 時間帯（1日 / 午前 / 午後 / 夕方 / 夜）を複数選択 + コメント
+export type AvailSlot = "allday" | "morning" | "afternoon" | "evening" | "night";
+
+export interface Availability {
+  userId: string;
+  date: string; // "YYYY-MM-DD"
+  slots: AvailSlot[];
+  comment: string;
+}
+
+export const SLOT_LABEL: Record<AvailSlot, string> = {
+  allday: "1日",
+  morning: "午前",
+  afternoon: "午後",
+  evening: "夕方",
+  night: "夜",
+};
+
+// 表示・選択の順番
+export const SLOT_ORDER: AvailSlot[] = [
+  "allday",
+  "morning",
+  "afternoon",
+  "evening",
+  "night",
+];
+
+// コメントの定型文（ユーザーごとに作成・使い回し）
+export interface CommentTemplate {
+  id: string;
+  userId: string;
+  text: string;
+}
+
+export const EVENT_TYPE_LABEL: Record<EventType, string> = {
+  work: "稼働",
+  shooting: "撮影",
+  delivery: "納品",
+};
+
+export const EVENT_TYPE_COLOR: Record<EventType, string> = {
+  work: "#3b82f6", // 青
+  shooting: "#f59e0b", // オレンジ
+  delivery: "#ef4444", // 赤
+};
