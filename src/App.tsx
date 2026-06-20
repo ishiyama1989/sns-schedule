@@ -23,7 +23,6 @@ import Payments from "./components/Payments";
 import Requests from "./components/Requests";
 import MyPay from "./components/MyPay";
 import ProfileSettings from "./components/ProfileSettings";
-import AvailabilitySearch from "./components/AvailabilitySearch";
 
 type Tab =
   | "calendar"

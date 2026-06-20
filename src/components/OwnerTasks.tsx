@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import type { User } from "../types";
-import { VIDEO_TASK_STATUS_LABEL, type VideoTask, type VideoTaskStatus } from "../types";
+import { VIDEO_TASK_STATUS_LABEL, type VideoTaskStatus } from "../types";
 import { addVideoTask, getMembers, getVideoTasks, updateVideoTask } from "../store";
 import { yen } from "../lib/date";
 

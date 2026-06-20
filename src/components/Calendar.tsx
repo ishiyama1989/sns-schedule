@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from "react";
-import { Clock as ClockIcon, MapPin, User as UserIcon, Search, ChevronDown } from "lucide-react";
+import { Clock as ClockIcon, MapPin, User as UserIcon, Search } from "lucide-react";
 import {
   EVENT_TYPE_COLOR,
   EVENT_TYPE_LABEL,
