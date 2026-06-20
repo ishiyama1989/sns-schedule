@@ -961,13 +961,13 @@ label input, label select, label textarea { margin-top: 6px; font-weight: 400; }
 .cal-cell.hit:hover { background: rgba(46,125,82,0.12); }
 /* 自分が参加する日（メンバー用）*/
 .cal-cell.my-day {
-  background: rgba(210,48,48,0.08);
+  background: #fde8e8;
 }
-.cal-cell.my-day:hover { background: rgba(210,48,48,0.14); }
+.cal-cell.my-day:hover { background: #fbd5d5; }
 .cal-cell.my-day .cal-date {
   color: #c0392b;
   font-weight: 800;
-  background: rgba(210,48,48,0.14);
+  background: rgba(210,48,48,0.18);
   border-radius: 999px;
 }
 .cal-cell.my-day::after {
