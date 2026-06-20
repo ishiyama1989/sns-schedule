@@ -228,12 +228,13 @@ export default function Calendar({
             const dayEvents = eventsByDate[ds] ?? [];
             const isDragOver = dragOverDate === ds;
             const isSearchHit = searchMatchDates.has(ds);
+            const isMyDay = !isOwner && inMonth && dayEvents.some((e) => e.assigneeIds.includes(me.id));
             return (
               <div
                 key={ds}
                 className={`cal-cell ${inMonth ? "" : "dim"} ${
                   ds === todayStr() ? "today" : ""
-                } ${selected === ds ? "sel" : ""} ${isDragOver ? "drag-over" : ""} ${isSearchHit ? "hit" : ""}`}
+                } ${selected === ds ? "sel" : ""} ${isDragOver ? "drag-over" : ""} ${isSearchHit ? "hit" : ""} ${isMyDay ? "my-day" : ""}`}
                 onClick={() => setSelected(ds)}
                 onDragOver={isOwner ? (ev) => { ev.preventDefault(); ev.dataTransfer.dropEffect = "move"; setDragOverDate(ds); } : undefined}
                 onDragLeave={isOwner ? (ev) => { if (!ev.currentTarget.contains(ev.relatedTarget as Node)) setDragOverDate(null); } : undefined}

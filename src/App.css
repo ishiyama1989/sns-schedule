@@ -959,6 +959,27 @@ label input, label select, label textarea { margin-top: 6px; font-weight: 400; }
 }
 .cal-cell.hit { background: rgba(46,125,82,0.07); }
 .cal-cell.hit:hover { background: rgba(46,125,82,0.12); }
+/* 自分が参加する日（メンバー用）*/
+.cal-cell.my-day {
+  background: rgba(46,125,82,0.10);
+}
+.cal-cell.my-day:hover { background: rgba(46,125,82,0.16); }
+.cal-cell.my-day .cal-date {
+  color: var(--primary);
+  font-weight: 800;
+  background: rgba(46,125,82,0.16);
+  border-radius: 999px;
+}
+.cal-cell.my-day::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--primary) 0%, #3aaa6e 100%);
+  opacity: 0.55;
+}
 .cal-hit-mark {
   font-size: 10px;
   font-weight: 700;
