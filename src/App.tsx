@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import "./App.css";
 import {
   Calendar as CalendarIcon, Clock, Inbox, Banknote, Settings,
-  Users, BarChart2, LogOut, type LucideIcon,
+  Users, BarChart2, LogOut, ClipboardList, type LucideIcon,
 } from "lucide-react";
 import type { User } from "./types";
 import {
@@ -10,12 +10,15 @@ import {
   logout,
   pendingPayConfirmationsForUser,
   pendingRequestsForUser,
+  pendingVideoTasksForUser,
+  submittedVideoTasksCount,
   seedIfEmpty,
 } from "./store";
 import Login from "./components/Login";
 import Calendar from "./components/Calendar";
 import AvailabilityView from "./components/Availability";
 import OwnerMembers from "./components/OwnerMembers";
+import OwnerTasks from "./components/OwnerTasks";
 import Payments from "./components/Payments";
 import Requests from "./components/Requests";
 import MyPay from "./components/MyPay";
@@ -30,7 +33,8 @@ type Tab =
   | "settings"
   | "search"
   | "members"
-  | "payments";
+  | "payments"
+  | "tasks";
 
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
@@ -52,8 +56,11 @@ export default function App() {
     );
 
   const isOwner = user.role === "owner";
-  const pendingCount = isOwner ? 0 : pendingRequestsForUser(user.id).length;
+  const pendingReqCount = isOwner ? 0 : pendingRequestsForUser(user.id).length;
+  const pendingVideoCount = isOwner ? 0 : pendingVideoTasksForUser(user.id).length;
+  const pendingCount = pendingReqCount + pendingVideoCount;
   const payCount = isOwner ? 0 : pendingPayConfirmationsForUser(user.id).length;
+  const taskCount = isOwner ? submittedVideoTasksCount() : 0;
   const tabs: { key: Tab; label: string; icon: LucideIcon; ownerOnly?: boolean; memberOnly?: boolean }[] = [
     { key: "calendar", label: "カレンダー", icon: CalendarIcon },
     { key: "availability", label: "稼働日設定", icon: Clock, memberOnly: true },
@@ -72,6 +79,12 @@ export default function App() {
     { key: "settings", label: "設定", icon: Settings, memberOnly: true },
     { key: "members", label: "メンバー管理", icon: Users, ownerOnly: true },
     { key: "payments", label: "支払い集計", icon: BarChart2, ownerOnly: true },
+    {
+      key: "tasks",
+      label: `依頼管理${taskCount > 0 ? `（${taskCount}）` : ""}`,
+      icon: ClipboardList,
+      ownerOnly: true,
+    },
   ];
 
   return (
@@ -129,6 +142,7 @@ export default function App() {
         )}
         {tab === "members" && isOwner && <OwnerMembers />}
         {tab === "payments" && isOwner && <Payments />}
+        {tab === "tasks" && isOwner && <OwnerTasks me={user} />}
       </main>
     </div>
   );

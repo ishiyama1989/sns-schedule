@@ -152,3 +152,30 @@ export const EVENT_TYPE_COLOR: Record<string, string> = {
 
 // 凡例・選択肢に表示する順序
 export const EVENT_TYPES: EventType[] = ["shooting", "meeting", "delivery", "other"];
+
+// 動画編集依頼（依頼管理機能）
+export type VideoTaskStatus = "pending" | "accepted" | "submitted" | "completed" | "rejected";
+
+export const VIDEO_TASK_STATUS_LABEL: Record<VideoTaskStatus, string> = {
+  pending: "承認待ち",
+  accepted: "進行中",
+  submitted: "納品確認待ち",
+  completed: "完了",
+  rejected: "却下",
+};
+
+export interface VideoTask {
+  id: string;
+  fromUserId: string;   // 依頼した管理者
+  toUserId: string;     // 担当メンバー
+  title: string;
+  description: string;
+  deadline: string;     // YYYY-MM-DD
+  amount: number;
+  status: VideoTaskStatus;
+  createdAt: string;
+  deliveryUrl?: string;
+  deliveryNote?: string;
+  submittedAt?: string;
+  completedAt?: string;
+}

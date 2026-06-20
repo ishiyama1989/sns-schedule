@@ -10,6 +10,7 @@ import type {
   RecipientType,
   ScheduleEvent,
   User,
+  VideoTask,
 } from "./types";
 
 const KEYS = {
@@ -21,6 +22,7 @@ const KEYS = {
   requests: "sns_requests",
   payConf: "sns_pay_confirmations",
   recipients: "sns_recipients",
+  videoTasks: "sns_video_tasks",
   version: "sns_schema_version",
 };
 
@@ -511,4 +513,33 @@ export function deleteRecipient(id: string): void {
     KEYS.recipients,
     read<Recipient[]>(KEYS.recipients, []).filter((r) => r.id !== id)
   );
+}
+
+// ---- 動画編集依頼（依頼管理） ----
+export function getVideoTasks(): VideoTask[] {
+  return read<VideoTask[]>(KEYS.videoTasks, []);
+}
+
+function saveVideoTasks(tasks: VideoTask[]): void {
+  write(KEYS.videoTasks, tasks);
+}
+
+export function addVideoTask(
+  data: Omit<VideoTask, "id" | "status" | "createdAt">
+): void {
+  const tasks = getVideoTasks();
+  tasks.push({ ...data, id: uid(), status: "pending", createdAt: today() });
+  saveVideoTasks(tasks);
+}
+
+export function updateVideoTask(id: string, patch: Partial<VideoTask>): void {
+  saveVideoTasks(getVideoTasks().map((t) => (t.id === id ? { ...t, ...patch } : t)));
+}
+
+export function pendingVideoTasksForUser(userId: string): VideoTask[] {
+  return getVideoTasks().filter((t) => t.toUserId === userId && t.status === "pending");
+}
+
+export function submittedVideoTasksCount(): number {
+  return getVideoTasks().filter((t) => t.status === "submitted").length;
 }
