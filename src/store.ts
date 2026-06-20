@@ -27,7 +27,7 @@ const KEYS = {
 };
 
 // データ構造を変えたらここを上げる。旧データは初期化される。
-const SCHEMA_VERSION = "2";
+const SCHEMA_VERSION = "3";
 
 function read<T>(key: string, fallback: T): T {
   try {
@@ -72,58 +72,138 @@ export function seedIfEmpty(): void {
     role: "owner",
     hourlyRate: 0,
   };
-  const member: User = {
+  const taro: User = {
     id: uid(),
     name: "山田 太郎",
     password: "1234",
     role: "member",
     hourlyRate: 1500,
   };
-  write<User[]>(KEYS.users, [owner, member]);
+  const maya: User = {
+    id: uid(),
+    name: "maya",
+    password: "0000",
+    role: "member",
+    hourlyRate: 2000,
+  };
+  const yuka: User = {
+    id: uid(),
+    name: "yuka",
+    password: "0000",
+    role: "member",
+    hourlyRate: 1800,
+  };
+  write<User[]>(KEYS.users, [owner, taro, maya, yuka]);
 
-  const today = new Date();
+  const base = new Date();
   const d = (offset: number) => {
-    const x = new Date(today);
-    x.setDate(today.getDate() + offset);
+    const x = new Date(base);
+    x.setDate(base.getDate() + offset);
     return x.toISOString().slice(0, 10);
   };
+
   const events: ScheduleEvent[] = [
+    // 山田 太郎
     {
-      id: uid(),
-      date: d(1),
-      type: "shooting",
-      title: "カフェ案件 撮影",
-      location: "渋谷スタジオ",
-      assigneeIds: [member.id],
-      start: "10:00",
-      end: "16:00",
+      id: uid(), date: d(1), type: "shooting",
+      title: "カフェ案件 撮影", location: "渋谷スタジオ",
+      assigneeIds: [taro.id], start: "10:00", end: "16:00",
       note: "リール用素材を撮影",
     },
     {
-      id: uid(),
-      date: d(3),
-      type: "other",
-      title: "投稿編集・予約",
-      location: "リモート",
-      assigneeIds: [member.id],
-      start: "13:00",
-      end: "17:00",
-      note: "",
+      id: uid(), date: d(3), type: "other",
+      title: "投稿編集・予約", location: "リモート",
+      assigneeIds: [taro.id], start: "13:00", end: "17:00", note: "",
     },
     {
-      id: uid(),
-      date: d(5),
-      type: "delivery",
-      title: "カフェ案件 納品",
-      location: "オンライン",
-      assigneeIds: [member.id],
-      start: "12:00",
-      end: "12:30",
+      id: uid(), date: d(5), type: "delivery",
+      title: "カフェ案件 納品", location: "オンライン",
+      assigneeIds: [taro.id], start: "12:00", end: "12:30",
       note: "クライアントへ共有",
+    },
+    // maya
+    {
+      id: uid(), date: d(2), type: "shooting",
+      title: "コスメブランド撮影", location: "表参道スタジオ",
+      assigneeIds: [maya.id], start: "10:00", end: "15:00",
+      note: "商品撮影・モデル有り",
+    },
+    {
+      id: uid(), date: d(4), type: "meeting",
+      title: "クライアントMTG", location: "オンライン（Zoom）",
+      assigneeIds: [maya.id], start: "14:00", end: "15:30", note: "",
+    },
+    {
+      id: uid(), date: d(8), type: "delivery",
+      title: "コスメ案件 納品", location: "オンライン",
+      assigneeIds: [maya.id], start: "12:00", end: "12:30", note: "",
+    },
+    {
+      id: uid(), date: d(11), type: "shooting",
+      title: "カフェ新メニュー撮影", location: "渋谷カフェ",
+      assigneeIds: [maya.id], start: "09:00", end: "13:00",
+      note: "フード撮影",
+    },
+    {
+      id: uid(), date: d(15), type: "other",
+      title: "投稿スケジュール作成", location: "リモート",
+      assigneeIds: [maya.id], start: "13:00", end: "16:00", note: "",
+    },
+    // yuka
+    {
+      id: uid(), date: d(1), type: "shooting",
+      title: "アパレル春コーデ撮影", location: "代官山",
+      assigneeIds: [yuka.id], start: "11:00", end: "17:00",
+      note: "ルック撮影5セット",
+    },
+    {
+      id: uid(), date: d(3), type: "meeting",
+      title: "月次報告MTG", location: "オンライン",
+      assigneeIds: [yuka.id], start: "10:00", end: "11:00", note: "",
+    },
+    {
+      id: uid(), date: d(7), type: "shooting",
+      title: "インスタ用リール撮影", location: "青山スタジオ",
+      assigneeIds: [yuka.id, maya.id], start: "13:00", end: "18:00",
+      note: "リール3本分",
+    },
+    {
+      id: uid(), date: d(10), type: "delivery",
+      title: "アパレル案件 納品", location: "オンライン",
+      assigneeIds: [yuka.id], start: "15:00", end: "15:30", note: "",
+    },
+    {
+      id: uid(), date: d(13), type: "other",
+      title: "SNS分析レポート作成", location: "リモート",
+      assigneeIds: [yuka.id], start: "14:00", end: "17:00", note: "",
+    },
+    // maya + yuka 合同
+    {
+      id: uid(), date: d(6), type: "shooting",
+      title: "ジュエリーブランド撮影", location: "銀座スタジオ",
+      assigneeIds: [maya.id, yuka.id], start: "10:00", end: "16:00",
+      note: "新作コレクション撮影",
     },
   ];
   write<ScheduleEvent[]>(KEYS.events, events);
-  write<Availability[]>(KEYS.avail, []);
+
+  const avail: Availability[] = [
+    // maya
+    { userId: maya.id, date: d(0), slots: ["allday"], comment: "終日OK" },
+    { userId: maya.id, date: d(2), slots: ["morning", "afternoon"], comment: "午前・午後のみ" },
+    { userId: maya.id, date: d(5), slots: ["afternoon", "evening"], comment: "" },
+    { userId: maya.id, date: d(9), slots: ["allday"], comment: "" },
+    { userId: maya.id, date: d(12), slots: ["morning"], comment: "午前のみ" },
+    { userId: maya.id, date: d(16), slots: ["allday"], comment: "撮影後も対応可" },
+    // yuka
+    { userId: yuka.id, date: d(0), slots: ["afternoon", "evening"], comment: "午後から空いてます" },
+    { userId: yuka.id, date: d(2), slots: ["allday"], comment: "" },
+    { userId: yuka.id, date: d(6), slots: ["morning", "afternoon"], comment: "" },
+    { userId: yuka.id, date: d(9), slots: ["allday"], comment: "終日空き" },
+    { userId: yuka.id, date: d(14), slots: ["evening", "night"], comment: "夕方以降OK" },
+    { userId: yuka.id, date: d(17), slots: ["allday"], comment: "" },
+  ];
+  write<Availability[]>(KEYS.avail, avail);
 }
 
 // ---- ユーザー ----
