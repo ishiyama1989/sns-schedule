@@ -775,6 +775,20 @@ label input, label select, label textarea { margin-top: 6px; font-weight: 400; }
 .members-table tfoot td { border-bottom: none; background: #f5faf6; font-weight: 700; }
 .row-actions { display: flex; gap: 8px; }
 .row-actions button { font-size: 12px; padding: 5px 12px; }
+.member-name-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: inherit;
+  font-weight: 600;
+  color: var(--primary);
+  text-decoration: underline;
+  text-decoration-color: rgba(46,125,82,0.35);
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.member-name-btn:hover { color: var(--primary-d); text-decoration-color: var(--primary); }
+.member-detail-modal { width: 600px; }
 .rate-input { display: flex; align-items: center; gap: 4px; }
 .rate-input input { width: 100px; }
 .amount { font-weight: 700; }

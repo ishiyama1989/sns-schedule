@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { deleteUser, getMembers, updateUser } from "../store";
 import type { User } from "../types";
-import { yen } from "../lib/date";
 
 // オーナーが登録ユーザー（メンバー）の情報を編集・削除する画面
 export default function OwnerMembers() {
@@ -19,7 +18,7 @@ export default function OwnerMembers() {
       <div className="section-head">
         <h2>メンバー管理</h2>
         <p className="muted">
-          登録ユーザーの情報（名前・時給・パスワード）を編集できます。削除も可能です。
+          登録ユーザーの情報（名前・パスワード）を編集できます。削除も可能です。
         </p>
       </div>
 
@@ -32,7 +31,6 @@ export default function OwnerMembers() {
           <thead>
             <tr>
               <th>名前</th>
-              <th>時給</th>
               <th>操作</th>
             </tr>
           </thead>
@@ -40,7 +38,6 @@ export default function OwnerMembers() {
             {members.map((m) => (
               <tr key={m.id}>
                 <td>{m.name}</td>
-                <td>{yen(m.hourlyRate)}/時</td>
                 <td>
                   <div className="row-actions">
                     <button className="ghost" onClick={() => setEditing(m)}>
