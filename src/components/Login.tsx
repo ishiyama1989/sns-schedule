@@ -126,13 +126,6 @@ export default function Login({ onAuth }: { onAuth: (u: User) => void }) {
           </button>
         </form>
 
-        <div className="hint">
-          <strong>お試し用アカウント</strong>
-          <br />
-          管理者: 管理者 / 0000
-          <br />
-          メンバー: 山田 太郎 / 1234
-        </div>
       </div>
     </div>
   );
