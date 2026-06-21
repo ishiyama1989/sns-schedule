@@ -75,7 +75,7 @@ export default function App() {
       icon: Banknote,
       memberOnly: true,
     },
-    { key: "settings", label: "設定", icon: Settings, memberOnly: true },
+    { key: "settings", label: "設定", icon: Settings },
     {
       key: "tasks",
       label: `依頼管理${taskCount > 0 ? `（${taskCount}）` : ""}`,
@@ -136,7 +136,7 @@ export default function App() {
         {tab === "availability" && !isOwner && <AvailabilityView me={user} />}
         {tab === "requests" && !isOwner && <Requests me={user} />}
         {tab === "mypay" && !isOwner && <MyPay me={user} />}
-        {tab === "settings" && !isOwner && (
+        {tab === "settings" && (
           <ProfileSettings me={user} onUpdated={(u) => setUser(u)} />
         )}
         {tab === "members" && isOwner && <OwnerMembers />}

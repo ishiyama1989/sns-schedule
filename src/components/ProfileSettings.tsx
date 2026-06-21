@@ -5,7 +5,7 @@ import type {
   StampShape,
   User,
 } from "../types";
-import { updateUserProfile } from "../store";
+import { changePassword, updateUserProfile } from "../store";
 import { STAMP_FONTS, stampSvg } from "../lib/stamp";
 
 // メンバーが自分のプロフィール（住所等）とデジタル印影を設定する画面
@@ -35,6 +35,25 @@ export default function ProfileSettings({
     me.stamp?.font ?? "mincho"
   );
   const [saved, setSaved] = useState(false);
+
+  const [pwCurrent, setPwCurrent] = useState("");
+  const [pwNext, setPwNext] = useState("");
+  const [pwNext2, setPwNext2] = useState("");
+  const [pwMsg, setPwMsg] = useState<{ ok: boolean; text: string } | null>(null);
+
+  function savePw() {
+    if (pwNext !== pwNext2) {
+      setPwMsg({ ok: false, text: "新しいパスワードが一致しません" });
+      return;
+    }
+    const result = changePassword(me.id, pwCurrent, pwNext);
+    if (result.ok) {
+      setPwMsg({ ok: true, text: "パスワードを変更しました" });
+      setPwCurrent(""); setPwNext(""); setPwNext2("");
+    } else {
+      setPwMsg({ ok: false, text: result.error });
+    }
+  }
 
   function save() {
     const updated = updateUserProfile(me.id, {
@@ -222,6 +241,51 @@ export default function ProfileSettings({
             </div>
           </div>
         )}
+      </div>
+
+      <div className="settings-card">
+        <h3>パスワード変更</h3>
+        <label>
+          現在のパスワード
+          <input
+            type="password"
+            inputMode="numeric"
+            maxLength={4}
+            placeholder="現在の4桁パスワード"
+            value={pwCurrent}
+            onChange={(e) => { setPwCurrent(e.target.value); setPwMsg(null); }}
+          />
+        </label>
+        <label>
+          新しいパスワード（4桁の数字）
+          <input
+            type="password"
+            inputMode="numeric"
+            maxLength={4}
+            placeholder="新しい4桁パスワード"
+            value={pwNext}
+            onChange={(e) => { setPwNext(e.target.value); setPwMsg(null); }}
+          />
+        </label>
+        <label>
+          新しいパスワード（確認）
+          <input
+            type="password"
+            inputMode="numeric"
+            maxLength={4}
+            placeholder="もう一度入力"
+            value={pwNext2}
+            onChange={(e) => { setPwNext2(e.target.value); setPwMsg(null); }}
+          />
+        </label>
+        {pwMsg && (
+          <p className={pwMsg.ok ? "muted" : "error"} style={pwMsg.ok ? { color: "var(--success)" } : {}}>
+            {pwMsg.text}
+          </p>
+        )}
+        <div className="settings-actions">
+          <button className="primary" onClick={savePw}>パスワードを変更</button>
+        </div>
       </div>
 
       <div className="settings-actions">
