@@ -14,6 +14,7 @@ import {
   submittedVideoTasksCount,
   seedIfEmpty,
 } from "./store";
+import { hydrateFromSupabase } from "./lib/supabase";
 import Login from "./components/Login";
 import Calendar from "./components/Calendar";
 import AvailabilityView from "./components/Availability";
@@ -38,11 +39,24 @@ type Tab =
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
   const [tab, setTab] = useState<Tab>("calendar");
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    seedIfEmpty();
-    setUser(currentUser());
+    (async () => {
+      await hydrateFromSupabase();
+      seedIfEmpty();
+      setUser(currentUser());
+      setLoading(false);
+    })();
   }, []);
+
+  if (loading)
+    return (
+      <div className="loading-screen">
+        <div className="loading-spinner" />
+        <p>読み込み中...</p>
+      </div>
+    );
 
   if (!user)
     return (

@@ -1,6 +1,3 @@
-// localStorage を使った簡易データストア（プロトタイプ用）
-// 本番ではこの層をサーバAPI（DB）に差し替える想定です。
-
 import type {
   AppRequest,
   Availability,
@@ -12,6 +9,16 @@ import type {
   User,
   VideoTask,
 } from "./types";
+import {
+  syncUsers,
+  syncEvents,
+  syncAvailability,
+  syncRequests,
+  syncPayConfirmations,
+  syncRecipients,
+  syncTemplates,
+  syncVideoTasks,
+} from "./lib/supabase";
 
 const KEYS = {
   users: "sns_users",
@@ -26,7 +33,6 @@ const KEYS = {
   version: "sns_schema_version",
 };
 
-// データ構造を変えたらここを上げる。旧データは初期化される。
 const SCHEMA_VERSION = "4";
 
 function read<T>(key: string, fallback: T): T {
@@ -46,9 +52,8 @@ export function uid(): string {
   return Math.random().toString(36).slice(2, 10);
 }
 
-// ---- 初回起動時にオーナーアカウントとサンプルを用意 ----
+// ---- 初回起動時にオーナーアカウントを用意 ----
 export function seedIfEmpty(): void {
-  // 旧バージョン（メール+パスワード形式）のデータは構造が変わったため一旦リセット
   if (read<string | null>(KEYS.version, null) !== SCHEMA_VERSION) {
     [
       KEYS.users,
@@ -73,6 +78,7 @@ export function seedIfEmpty(): void {
     hourlyRate: 0,
   };
   write<User[]>(KEYS.users, [owner]);
+  syncUsers([owner]);
   write<ScheduleEvent[]>(KEYS.events, []);
   write<Availability[]>(KEYS.avail, []);
 }
@@ -81,9 +87,12 @@ export function seedIfEmpty(): void {
 export function getUsers(): User[] {
   return read<User[]>(KEYS.users, []);
 }
+
 export function saveUsers(users: User[]): void {
   write(KEYS.users, users);
+  syncUsers(users);
 }
+
 export function getMembers(): User[] {
   return getUsers().filter((u) => u.role === "member");
 }
@@ -116,7 +125,6 @@ export function registerUser(input: {
   return { ok: true, user };
 }
 
-// メンバー自身がプロフィール・印影を更新
 export function updateUserProfile(
   userId: string,
   fields: {
@@ -182,13 +190,9 @@ export function changePassword(
 }
 
 export function updateHourlyRate(userId: string, rate: number): void {
-  const users = getUsers().map((u) =>
-    u.id === userId ? { ...u, hourlyRate: rate } : u
-  );
-  saveUsers(users);
+  saveUsers(getUsers().map((u) => (u.id === userId ? { ...u, hourlyRate: rate } : u)));
 }
 
-// オーナーがユーザー情報（名前・時給・任意でパスワード）を編集
 export function updateUser(
   userId: string,
   fields: { name: string; hourlyRate: number; password?: string }
@@ -216,7 +220,6 @@ export function updateUser(
   return { ok: true };
 }
 
-// ユーザー削除。関連する空き状況・予定の担当・定型文も掃除する
 export function deleteUser(userId: string): void {
   saveUsers(getUsers().filter((u) => u.id !== userId));
   saveEvents(
@@ -225,23 +228,26 @@ export function deleteUser(userId: string): void {
       assigneeIds: e.assigneeIds.filter((id) => id !== userId),
     }))
   );
-  write(
-    KEYS.avail,
-    getAvailability().filter((a) => a.userId !== userId)
+  const newAvail = getAvailability().filter((a) => a.userId !== userId);
+  write(KEYS.avail, newAvail);
+  syncAvailability(newAvail);
+  const newTemplates = read<CommentTemplate[]>(KEYS.templates, []).filter(
+    (t) => t.userId !== userId
   );
-  write(
-    KEYS.templates,
-    read<CommentTemplate[]>(KEYS.templates, []).filter((t) => t.userId !== userId)
-  );
+  write(KEYS.templates, newTemplates);
+  syncTemplates(newTemplates);
 }
 
 // ---- 予定 ----
 export function getEvents(): ScheduleEvent[] {
   return read<ScheduleEvent[]>(KEYS.events, []);
 }
+
 export function saveEvents(events: ScheduleEvent[]): void {
   write(KEYS.events, events);
+  syncEvents(events);
 }
+
 export function upsertEvent(ev: ScheduleEvent): void {
   const events = getEvents();
   const idx = events.findIndex((e) => e.id === ev.id);
@@ -249,13 +255,13 @@ export function upsertEvent(ev: ScheduleEvent): void {
   else events.push(ev);
   saveEvents(events);
 }
+
 export function deleteEvent(id: string): void {
   saveEvents(getEvents().filter((e) => e.id !== id));
 }
 
 // ---- 空き状況 ----
 export function getAvailability(): Availability[] {
-  // 古い形式（statusのみ）が残っていても落ちないよう正規化
   return read<Availability[]>(KEYS.avail, []).map((a) => ({
     userId: a.userId,
     date: a.date,
@@ -271,7 +277,6 @@ export function getAvailabilityFor(
   return getAvailability().find((a) => a.userId === userId && a.date === date) ?? null;
 }
 
-// スロットとコメントを保存。両方空なら登録を削除する。
 export function setAvailability(
   userId: string,
   date: string,
@@ -285,16 +290,16 @@ export function setAvailability(
     list.push({ userId, date, slots, comment: comment.trim() });
   }
   write(KEYS.avail, list);
+  syncAvailability(list);
 }
 
-// その日に空き登録のあるメンバーの一覧（スロット・コメント付き）
 export function availabilityOn(date: string): Availability[] {
   return getAvailability().filter(
     (a) => a.date === date && (a.slots.length > 0 || a.comment)
   );
 }
 
-// ---- コメント定型文（ユーザーごと） ----
+// ---- コメント定型文 ----
 export function getCommentTemplates(userId: string): CommentTemplate[] {
   return read<CommentTemplate[]>(KEYS.templates, []).filter(
     (t) => t.userId === userId
@@ -305,10 +310,10 @@ export function addCommentTemplate(userId: string, text: string): void {
   const trimmed = text.trim();
   if (!trimmed) return;
   const all = read<CommentTemplate[]>(KEYS.templates, []);
-  // 同じユーザーの同じ文言は重複登録しない
   if (all.some((t) => t.userId === userId && t.text === trimmed)) return;
   all.push({ id: uid(), userId, text: trimmed });
   write(KEYS.templates, all);
+  syncTemplates(all);
 }
 
 export function deleteCommentTemplate(id: string): void {
@@ -316,20 +321,20 @@ export function deleteCommentTemplate(id: string): void {
     (t) => t.id !== id
   );
   write(KEYS.templates, all);
+  syncTemplates(all);
 }
 
 // ---- 依頼（申請） ----
 export function getRequests(): AppRequest[] {
   return read<AppRequest[]>(KEYS.requests, []);
 }
+
 function saveRequests(rs: AppRequest[]): void {
   write(KEYS.requests, rs);
+  syncRequests(rs);
 }
 
-// オーナーがメンバーへ依頼を送る（承認待ちで作成）
-export function addRequest(
-  input: Omit<AppRequest, "id" | "status">
-): void {
+export function addRequest(input: Omit<AppRequest, "id" | "status">): void {
   const rs = getRequests();
   rs.push({ ...input, id: uid(), status: "pending" });
   saveRequests(rs);
@@ -339,21 +344,18 @@ export function requestsOn(date: string): AppRequest[] {
   return getRequests().filter((r) => r.date === date);
 }
 
-// メンバー宛ての承認待ち依頼
 export function pendingRequestsForUser(userId: string): AppRequest[] {
   return getRequests().filter(
     (r) => r.toUserId === userId && r.status === "pending"
   );
 }
 
-// メンバー宛ての全依頼（履歴含む）。新しい日付順
 export function requestsForUser(userId: string): AppRequest[] {
   return getRequests()
     .filter((r) => r.toUserId === userId)
     .sort((a, b) => (a.date < b.date ? 1 : -1));
 }
 
-// 承認 → 予定としてカレンダーに登録
 export function approveRequest(id: string): void {
   const rs = getRequests();
   const r = rs.find((x) => x.id === id);
@@ -389,8 +391,10 @@ function today(): string {
 export function getPayConfirmations(): PayConfirmation[] {
   return read<PayConfirmation[]>(KEYS.payConf, []);
 }
+
 function savePayConfirmations(list: PayConfirmation[]): void {
   write(KEYS.payConf, list);
+  syncPayConfirmations(list);
 }
 
 export function payConfirmationFor(
@@ -404,7 +408,6 @@ export function payConfirmationFor(
   );
 }
 
-// オーナーが報酬を確定して確認依頼を送る（既存があれば上書きして再依頼）
 export function requestPayConfirmation(
   userId: string,
   quarter: string,
@@ -429,7 +432,6 @@ export function requestPayConfirmation(
   savePayConfirmations(list);
 }
 
-// メンバーが内容を確認
 export function confirmPayConfirmation(id: string): void {
   const list = getPayConfirmations();
   const p = list.find((x) => x.id === id);
@@ -447,7 +449,7 @@ export function pendingPayConfirmationsForUser(
   );
 }
 
-// ---- 宛名帳（領収書の宛先） ----
+// ---- 宛名帳 ----
 export function getRecipients(userId: string): Recipient[] {
   return read<Recipient[]>(KEYS.recipients, []).filter(
     (r) => r.userId === userId
@@ -462,7 +464,6 @@ export function addRecipient(
   const trimmed = name.trim();
   if (!trimmed) return;
   const all = read<Recipient[]>(KEYS.recipients, []);
-  // 同じユーザー・同名・同種別の重複は登録しない
   if (
     all.some(
       (r) => r.userId === userId && r.name === trimmed && r.type === type
@@ -471,22 +472,25 @@ export function addRecipient(
     return;
   all.push({ id: uid(), userId, name: trimmed, type });
   write(KEYS.recipients, all);
+  syncRecipients(all);
 }
 
 export function deleteRecipient(id: string): void {
-  write(
-    KEYS.recipients,
-    read<Recipient[]>(KEYS.recipients, []).filter((r) => r.id !== id)
+  const remaining = read<Recipient[]>(KEYS.recipients, []).filter(
+    (r) => r.id !== id
   );
+  write(KEYS.recipients, remaining);
+  syncRecipients(remaining);
 }
 
-// ---- 動画編集依頼（依頼管理） ----
+// ---- 動画編集依頼 ----
 export function getVideoTasks(): VideoTask[] {
   return read<VideoTask[]>(KEYS.videoTasks, []);
 }
 
 function saveVideoTasks(tasks: VideoTask[]): void {
   write(KEYS.videoTasks, tasks);
+  syncVideoTasks(tasks);
 }
 
 export function addVideoTask(
