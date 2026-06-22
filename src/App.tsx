@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import "./App.css";
 import {
   Calendar as CalendarIcon, Clock, Inbox, Banknote, Settings,
-  Users, BarChart2, LogOut, ClipboardList, type LucideIcon,
+  Users, BarChart2, LogOut, ClipboardList, FolderKanban, type LucideIcon,
 } from "lucide-react";
 import type { User } from "./types";
 import {
@@ -25,6 +25,7 @@ import OwnerTasks from "./components/OwnerTasks";
 import Payments from "./components/Payments";
 import Requests from "./components/Requests";
 import MyPay from "./components/MyPay";
+import Projects from "./components/Projects";
 import ProfileSettings from "./components/ProfileSettings";
 
 type Tab =
@@ -36,7 +37,8 @@ type Tab =
   | "search"
   | "members"
   | "payments"
-  | "tasks";
+  | "tasks"
+  | "projects";
 
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
@@ -97,6 +99,7 @@ export default function App() {
   const awaitingCount = isOwner ? countAwaitingAdmin() : 0;
   const tabs: { key: Tab; label: string; icon: LucideIcon; ownerOnly?: boolean; memberOnly?: boolean }[] = [
     { key: "calendar", label: "カレンダー", icon: CalendarIcon },
+    { key: "projects", label: "案件一覧", icon: FolderKanban },
     { key: "availability", label: "稼働日設定", icon: Clock, memberOnly: true },
     {
       key: "requests",
@@ -177,6 +180,7 @@ export default function App() {
         {tab === "availability" && !isOwner && <AvailabilityView me={user} />}
         {tab === "requests" && !isOwner && <Requests me={user} />}
         {tab === "mypay" && !isOwner && <MyPay me={user} />}
+        {tab === "projects" && <Projects me={user} />}
         {tab === "settings" && (
           <ProfileSettings me={user} onUpdated={(u) => setUser(u)} />
         )}

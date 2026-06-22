@@ -125,6 +125,40 @@ export const EVENT_APPROVAL_STATUS_LABEL: Record<EventApprovalStatus, string> = 
   rejected: "却下",
 };
 
+// 案件（請負中のクライアント案件）
+export type ProjectStatus = "active" | "paused" | "done";
+
+export const PROJECT_STATUS_LABEL: Record<ProjectStatus, string> = {
+  active: "請負中",
+  paused: "一時停止",
+  done: "完了",
+};
+
+export interface Project {
+  id: string;
+  name: string; // 案件名・クライアント名
+  status: ProjectStatus;
+  description: string;
+  assigneeIds: string[]; // 担当メンバー
+  startDate: string; // "YYYY-MM-DD"
+  createdAt: string;
+}
+
+// 案件に紐づく資料（リンク or アップロードファイル）
+export type MaterialKind = "link" | "file";
+
+export interface ProjectMaterial {
+  id: string;
+  projectId: string;
+  title: string;
+  kind: MaterialKind;
+  url: string; // リンクURL または ストレージの公開URL
+  filePath?: string; // ストレージ上のパス（fileの場合）
+  note?: string;
+  createdBy: string; // 登録したユーザーID
+  createdAt: string;
+}
+
 // メンバーの空き状況
 // 時間帯（1日 / 午前 / 午後 / 夕方 / 夜）を複数選択 + コメント
 export type AvailSlot = "allday" | "morning" | "afternoon" | "evening" | "night";
