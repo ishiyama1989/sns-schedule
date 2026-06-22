@@ -27,11 +27,11 @@ import {
 import { WEEKDAYS, monthGrid, todayStr, ymd } from "../lib/date";
 import MapLinks from "./MapLinks";
 
-// 終了時間プルダウン用スロット（30分刻み）
-const END_TIME_SLOTS: string[] = [];
+// 時間プルダウン用スロット（30分刻み）
+const TIME_SLOTS: string[] = [];
 for (let h = 0; h < 24; h++) {
-  END_TIME_SLOTS.push(`${String(h).padStart(2, "0")}:00`);
-  END_TIME_SLOTS.push(`${String(h).padStart(2, "0")}:30`);
+  TIME_SLOTS.push(`${String(h).padStart(2, "0")}:00`);
+  TIME_SLOTS.push(`${String(h).padStart(2, "0")}:30`);
 }
 
 export default function Calendar({
@@ -343,10 +343,12 @@ function DayPanel({
 }) {
   const [editing, setEditing] = useState<ScheduleEvent | null>(null);
   const [requestTo, setRequestTo] = useState<User | null>(null);
+  const [requestingEvent, setRequestingEvent] = useState<ScheduleEvent | null>(null);
   const availList = availabilityOn(date).filter((a) =>
     users.some((u) => u.id === a.userId && u.role === "member")
   );
   const dayRequests = requestsOn(date);
+  const members = users.filter((u) => u.role === "member");
 
   function newEvent(): ScheduleEvent {
     return {
@@ -367,160 +369,254 @@ function DayPanel({
       <div className="day-panel modal" onClick={(e) => e.stopPropagation()}>
         <div className="day-panel-head">
           <h3>{date.replace(/-/g, "/")}</h3>
-          <button className="ghost" onClick={onClose}>
-            ✕
-          </button>
+          <button className="ghost" onClick={onClose}>✕</button>
         </div>
 
-      {me.role === "owner" && (
-        <div className="avail-box">
-          <strong>この日に空いているメンバー</strong>
-          <div className="avail-member-list">
-            {availList.length === 0 ? (
-              <span className="muted">登録なし</span>
-            ) : (
-              availList.map((a) => {
-                const member = users.find((u) => u.id === a.userId);
-                return (
-                  <div key={a.userId} className="avail-member">
-                    <span className="avail-chip">{member?.name ?? ""}</span>
-                    <span className="avail-slots">
-                      {a.slots.map((s) => SLOT_LABEL[s]).join("・") || "—"}
-                    </span>
-                    {a.comment && <span className="avail-comment">{a.comment}</span>}
-                    {member && (
-                      <button
-                        className="ghost mini req-btn"
-                        onClick={() => setRequestTo(member)}
-                      >
-                        依頼する
-                      </button>
-                    )}
+        {me.role === "owner" && (
+          <div className="avail-box">
+            <strong>この日に空いているメンバー</strong>
+            <div className="avail-member-list">
+              {availList.length === 0 ? (
+                <span className="muted">登録なし</span>
+              ) : (
+                availList.map((a) => {
+                  const member = users.find((u) => u.id === a.userId);
+                  return (
+                    <div key={a.userId} className="avail-member">
+                      <span className="avail-chip">{member?.name ?? ""}</span>
+                      <span className="avail-slots">
+                        {a.slots.map((s) => SLOT_LABEL[s]).join("・") || "—"}
+                      </span>
+                      {a.comment && <span className="avail-comment">{a.comment}</span>}
+                      {member && (
+                        <button
+                          className="ghost mini req-btn"
+                          onClick={() => setRequestTo(member)}
+                        >
+                          依頼する
+                        </button>
+                      )}
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </div>
+        )}
+
+        {me.role === "owner" && requestTo && (
+          <RequestForm
+            date={date}
+            fromUserId={me.id}
+            toUser={requestTo}
+            onCancel={() => setRequestTo(null)}
+            onSent={() => {
+              setRequestTo(null);
+              onChange();
+            }}
+          />
+        )}
+
+        {me.role === "owner" && dayRequests.length > 0 && (
+          <div className="req-box">
+            <strong>送信した依頼</strong>
+            {dayRequests.map((r) => (
+              <div key={r.id} className="req-item">
+                <span className={`req-status ${r.status}`}>
+                  {REQUEST_STATUS_LABEL[r.status]}
+                </span>
+                <span className="req-text">
+                  {users.find((u) => u.id === r.toUserId)?.name} ／ {r.title}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div className="event-list">
+          {events.length === 0 && <p className="muted">予定はありません</p>}
+          {events.map((e) => {
+            const isMyEvent = me.role === "member" && e.assigneeIds.includes(me.id);
+            const coAssignees = isMyEvent
+              ? e.assigneeIds
+                  .filter((id) => id !== me.id)
+                  .map((id) => users.find((u) => u.id === id)?.name)
+                  .filter((n): n is string => !!n)
+              : [];
+            return (
+              <div key={e.id} className={`event-item ${isMyEvent ? "my-event" : ""}`}>
+                <span className="dot" style={{ background: EVENT_TYPE_COLOR[e.type] }} />
+                <div className="event-body">
+                  <div className="event-title">
+                    {e.title}{" "}
+                    <span className="tag">{EVENT_TYPE_LABEL[e.type]}</span>
                   </div>
-                );
-              })
-            )}
-          </div>
-        </div>
-      )}
-
-      {me.role === "owner" && requestTo && (
-        <RequestForm
-          date={date}
-          fromUserId={me.id}
-          toUser={requestTo}
-          onCancel={() => setRequestTo(null)}
-          onSent={() => {
-            setRequestTo(null);
-            onChange();
-          }}
-        />
-      )}
-
-      {me.role === "owner" && dayRequests.length > 0 && (
-        <div className="req-box">
-          <strong>送信した依頼</strong>
-          {dayRequests.map((r) => (
-            <div key={r.id} className="req-item">
-              <span className={`req-status ${r.status}`}>
-                {REQUEST_STATUS_LABEL[r.status]}
-              </span>
-              <span className="req-text">
-                {users.find((u) => u.id === r.toUserId)?.name} ／ {r.title}
-              </span>
-            </div>
-          ))}
-        </div>
-      )}
-
-      <div className="event-list">
-        {events.length === 0 && <p className="muted">予定はありません</p>}
-        {events.map((e) => {
-          const isMyEvent = me.role === "member" && e.assigneeIds.includes(me.id);
-          const coAssignees = isMyEvent
-            ? e.assigneeIds
-                .filter((id) => id !== me.id)
-                .map((id) => users.find((u) => u.id === id)?.name)
-                .filter((n): n is string => !!n)
-            : [];
-          return (
-          <div key={e.id} className={`event-item ${isMyEvent ? "my-event" : ""}`}>
-            <span className="dot" style={{ background: EVENT_TYPE_COLOR[e.type] }} />
-            <div className="event-body">
-              <div className="event-title">
-                {e.title}{" "}
-                <span className="tag">{EVENT_TYPE_LABEL[e.type]}</span>
-              </div>
-              <div className="event-meta">
-                <ClockIcon size={11} strokeWidth={2} style={{verticalAlign:"middle",marginRight:3}} />
-                {e.start}–{e.end || "未定"}
-                <span style={{margin:"0 4px",opacity:.4}}>·</span>
-                <MapPin size={11} strokeWidth={2} style={{verticalAlign:"middle",marginRight:3}} />
-                {e.location || "場所未設定"}
-              </div>
-              {e.location && (
-                <div className="event-meta">
-                  <MapLinks query={e.location} />
+                  <div className="event-meta">
+                    <ClockIcon size={11} strokeWidth={2} style={{verticalAlign:"middle",marginRight:3}} />
+                    {e.start}–{e.end || "未定"}
+                    <span style={{margin:"0 4px",opacity:.4}}>·</span>
+                    <MapPin size={11} strokeWidth={2} style={{verticalAlign:"middle",marginRight:3}} />
+                    {e.location || "場所未設定"}
+                  </div>
+                  {e.location && (
+                    <div className="event-meta">
+                      <MapLinks query={e.location} />
+                    </div>
+                  )}
+                  <div className={`event-meta ${isMyEvent ? "event-companions" : ""}`}>
+                    <UserIcon size={11} strokeWidth={2} style={{verticalAlign:"middle",marginRight:3}} />
+                    {isMyEvent
+                      ? coAssignees.length > 0
+                        ? `同行: ${coAssignees.join(", ")}`
+                        : "一人で参加"
+                      : e.assigneeIds
+                          .map((id) => users.find((u) => u.id === id)?.name)
+                          .filter(Boolean)
+                          .join(", ") || "未割当"}
+                  </div>
+                  {e.note && <div className="event-note">{e.note}</div>}
                 </div>
-              )}
-              <div className={`event-meta ${isMyEvent ? "event-companions" : ""}`}>
-                <UserIcon size={11} strokeWidth={2} style={{verticalAlign:"middle",marginRight:3}} />
-                {isMyEvent
-                  ? coAssignees.length > 0
-                    ? `同行: ${coAssignees.join(", ")}`
-                    : "一人で参加"
-                  : e.assigneeIds
-                      .map((id) => users.find((u) => u.id === id)?.name)
-                      .filter(Boolean)
-                      .join(", ") || "未割当"}
+                <div className="event-actions">
+                  {me.role === "owner" && (
+                    <button
+                      className="ghost mini"
+                      onClick={() => setRequestingEvent(e)}
+                    >
+                      依頼する
+                    </button>
+                  )}
+                  <button className="ghost" onClick={() => setEditing(e)}>
+                    編集
+                  </button>
+                  {me.role === "owner" && (
+                    <button
+                      className="ghost danger"
+                      onClick={() => {
+                        if (confirm("この予定を削除しますか？")) {
+                          deleteEvent(e.id);
+                          onChange();
+                        }
+                      }}
+                    >
+                      削除
+                    </button>
+                  )}
+                </div>
               </div>
-              {e.note && <div className="event-note">{e.note}</div>}
-            </div>
-            <div className="event-actions">
-              <button className="ghost" onClick={() => setEditing(e)}>
-                編集
-              </button>
-              {me.role === "owner" && (
-                <button
-                  className="ghost danger"
-                  onClick={() => {
-                    if (confirm("この予定を削除しますか？")) {
-                      deleteEvent(e.id);
-                      onChange();
-                    }
-                  }}
-                >
-                  削除
-                </button>
-              )}
-            </div>
-          </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
 
-      {editing ? (
-        <EventForm
-          value={editing}
-          users={users}
-          me={me}
-          onCancel={() => setEditing(null)}
-          onSave={(ev) => {
-            upsertEvent(ev);
-            setEditing(null);
-            onChange();
-          }}
-        />
-      ) : (
-        <button className="primary full" onClick={() => setEditing(newEvent())}>
-          ＋ 予定を追加
-        </button>
-      )}
+        {/* 予定から直接依頼を送るフォーム */}
+        {me.role === "owner" && requestingEvent && (
+          <EventRequestForm
+            event={requestingEvent}
+            fromUserId={me.id}
+            members={members}
+            onClose={() => setRequestingEvent(null)}
+            onSent={() => {
+              setRequestingEvent(null);
+              onChange();
+            }}
+          />
+        )}
+
+        {editing ? (
+          <EventForm
+            value={editing}
+            users={users}
+            me={me}
+            onCancel={() => setEditing(null)}
+            onSave={(ev) => {
+              upsertEvent(ev);
+              setEditing(null);
+              onChange();
+            }}
+          />
+        ) : (
+          !requestingEvent && (
+            <button className="primary full" onClick={() => setEditing(newEvent())}>
+              ＋ 予定を追加
+            </button>
+          )
+        )}
         {me.role === "owner" && (
           <p className="muted small">
             ※ 撮影日・納品日もここで「種別」を選んで登録します
           </p>
         )}
+      </div>
+    </div>
+  );
+}
+
+// 既存の予定内容でメンバーへ依頼を送るフォーム
+function EventRequestForm({
+  event,
+  fromUserId,
+  members,
+  onClose,
+  onSent,
+}: {
+  event: ScheduleEvent;
+  fromUserId: string;
+  members: User[];
+  onClose: () => void;
+  onSent: () => void;
+}) {
+  const [selected, setSelected] = useState<string[]>(
+    members.filter((m) => event.assigneeIds.includes(m.id)).map((m) => m.id)
+  );
+
+  function send() {
+    if (selected.length === 0) return alert("送信先を選択してください");
+    for (const toUserId of selected) {
+      addRequest({
+        date: event.date,
+        fromUserId,
+        toUserId,
+        type: event.type,
+        title: event.title,
+        location: event.location,
+        start: event.start,
+        end: event.end,
+        note: event.note,
+      });
+    }
+    onSent();
+  }
+
+  function toggle(id: string) {
+    setSelected((cur) =>
+      cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id]
+    );
+  }
+
+  return (
+    <div className="event-form req-form">
+      <div className="req-form-head">この予定内容で依頼を送る</div>
+      <p className="muted small" style={{ marginBottom: 8 }}>
+        「{event.title}」{event.start}–{event.end || "未定"}
+      </p>
+      <label>
+        送信先メンバー
+        <div className="assignee-chips">
+          {members.length === 0 && <span className="muted">メンバー未登録</span>}
+          {members.map((m) => (
+            <button
+              key={m.id}
+              type="button"
+              className={`pick ${selected.includes(m.id) ? "on" : ""}`}
+              onClick={() => toggle(m.id)}
+            >
+              {m.name}
+            </button>
+          ))}
+        </div>
+      </label>
+      <div className="form-actions">
+        <button className="ghost" onClick={onClose}>キャンセル</button>
+        <button className="primary" onClick={send}>依頼を送る</button>
       </div>
     </div>
   );
@@ -613,13 +709,17 @@ function EventForm({
       <div className="row">
         <label>
           開始
-          <input type="time" value={draft.start} onChange={(e) => set("start", e.target.value)} />
+          <select value={draft.start} onChange={(e) => set("start", e.target.value)}>
+            {TIME_SLOTS.map((t) => (
+              <option key={t} value={t}>{t}</option>
+            ))}
+          </select>
         </label>
         <label>
           終了
           <select value={draft.end} onChange={(e) => set("end", e.target.value)}>
             <option value="">未定</option>
-            {END_TIME_SLOTS.map((t) => (
+            {TIME_SLOTS.map((t) => (
               <option key={t} value={t}>{t}</option>
             ))}
           </select>
@@ -646,12 +746,8 @@ function EventForm({
         <textarea value={draft.note} onChange={(e) => set("note", e.target.value)} rows={2} />
       </label>
       <div className="form-actions">
-        <button className="ghost" onClick={onCancel}>
-          キャンセル
-        </button>
-        <button className="primary" onClick={() => handleSave(false)}>
-          保存
-        </button>
+        <button className="ghost" onClick={onCancel}>キャンセル</button>
+        <button className="primary" onClick={() => handleSave(false)}>保存</button>
         {canRequest && (
           <button className="primary" onClick={() => handleSave(true)}>
             保存して依頼する
@@ -740,13 +836,17 @@ function RequestForm({
       <div className="row">
         <label>
           開始
-          <input type="time" value={start} onChange={(e) => setStart(e.target.value)} />
+          <select value={start} onChange={(e) => setStart(e.target.value)}>
+            {TIME_SLOTS.map((t) => (
+              <option key={t} value={t}>{t}</option>
+            ))}
+          </select>
         </label>
         <label>
           終了
           <select value={end} onChange={(e) => setEnd(e.target.value)}>
             <option value="">未定</option>
-            {END_TIME_SLOTS.map((t) => (
+            {TIME_SLOTS.map((t) => (
               <option key={t} value={t}>{t}</option>
             ))}
           </select>
@@ -757,12 +857,8 @@ function RequestForm({
         <textarea value={note} onChange={(e) => setNote(e.target.value)} rows={2} />
       </label>
       <div className="form-actions">
-        <button className="ghost" onClick={onCancel}>
-          キャンセル
-        </button>
-        <button className="primary" onClick={send}>
-          依頼を送る
-        </button>
+        <button className="ghost" onClick={onCancel}>キャンセル</button>
+        <button className="primary" onClick={send}>依頼を送る</button>
       </div>
     </div>
   );
