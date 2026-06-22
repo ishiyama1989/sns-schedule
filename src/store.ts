@@ -18,6 +18,7 @@ import {
   syncRecipients,
   syncTemplates,
   syncVideoTasks,
+  deleteRemote,
 } from "./lib/supabase";
 
 const KEYS = {
@@ -221,7 +222,8 @@ export function updateUser(
 }
 
 export function deleteUser(userId: string): void {
-  saveUsers(getUsers().filter((u) => u.id !== userId));
+  write(KEYS.users, getUsers().filter((u) => u.id !== userId));
+  deleteRemote("users", { id: userId });
   saveEvents(
     getEvents().map((e) => ({
       ...e,
@@ -230,12 +232,12 @@ export function deleteUser(userId: string): void {
   );
   const newAvail = getAvailability().filter((a) => a.userId !== userId);
   write(KEYS.avail, newAvail);
-  syncAvailability(newAvail);
+  deleteRemote("availability", { user_id: userId });
   const newTemplates = read<CommentTemplate[]>(KEYS.templates, []).filter(
     (t) => t.userId !== userId
   );
   write(KEYS.templates, newTemplates);
-  syncTemplates(newTemplates);
+  deleteRemote("comment_templates", { user_id: userId });
 }
 
 // ---- 予定 ----
@@ -257,7 +259,8 @@ export function upsertEvent(ev: ScheduleEvent): void {
 }
 
 export function deleteEvent(id: string): void {
-  saveEvents(getEvents().filter((e) => e.id !== id));
+  write(KEYS.events, getEvents().filter((e) => e.id !== id));
+  deleteRemote("schedule_events", { id });
 }
 
 // ---- アプリ内通知（自分に割り当てられた新しい予定） ----
@@ -308,10 +311,15 @@ export function setAvailability(
     (a) => !(a.userId === userId && a.date === date)
   );
   if (slots.length > 0 || comment.trim()) {
-    list.push({ userId, date, slots, comment: comment.trim() });
+    const row = { userId, date, slots, comment: comment.trim() };
+    list.push(row);
+    write(KEYS.avail, list);
+    syncAvailability([row]);
+  } else {
+    // 空にした場合はその日の登録を削除
+    write(KEYS.avail, list);
+    deleteRemote("availability", { user_id: userId, date });
   }
-  write(KEYS.avail, list);
-  syncAvailability(list);
 }
 
 export function availabilityOn(date: string): Availability[] {
@@ -342,7 +350,7 @@ export function deleteCommentTemplate(id: string): void {
     (t) => t.id !== id
   );
   write(KEYS.templates, all);
-  syncTemplates(all);
+  deleteRemote("comment_templates", { id });
 }
 
 // ---- 依頼（申請） ----
@@ -501,7 +509,7 @@ export function deleteRecipient(id: string): void {
     (r) => r.id !== id
   );
   write(KEYS.recipients, remaining);
-  syncRecipients(remaining);
+  deleteRemote("recipients", { id });
 }
 
 // ---- 動画編集依頼 ----

@@ -199,51 +199,54 @@ const fromDbVideoTask = (r: any): VideoTask => ({
   completedAt: r.completed_at ?? undefined,
 })
 
-// ---- Sync helper: delete all + re-insert ----
-async function replaceTable<T>(
+// ---- Sync helper: 行ごとに upsert（全削除はしない＝データ消失を防ぐ） ----
+async function upsertRows<T>(
   table: string,
   items: T[],
   toDb: (item: T) => Record<string, unknown>,
-  deleteByField = 'id',
+  onConflict: string,
 ): Promise<void> {
-  await supabase.from(table).delete().neq(deleteByField, '~~~never~~~')
-  if (items.length > 0) {
-    await supabase.from(table).insert(items.map(toDb))
-  }
+  if (items.length === 0) return
+  await supabase.from(table).upsert(items.map(toDb), { onConflict })
+}
+
+// 特定の行だけを削除（削除操作はこちらで明示的に行う）
+export function deleteRemote(table: string, match: Record<string, unknown>): void {
+  supabase.from(table).delete().match(match).then(() => {}, () => {})
 }
 
 // ---- Public sync functions (fire-and-forget from store.ts) ----
 
 export function syncUsers(users: User[]): void {
-  replaceTable('users', users, toDbUser).catch(() => {})
+  upsertRows('users', users, toDbUser, 'id').catch(() => {})
 }
 
 export function syncEvents(events: ScheduleEvent[]): void {
-  replaceTable('schedule_events', events, toDbEvent).catch(() => {})
+  upsertRows('schedule_events', events, toDbEvent, 'id').catch(() => {})
 }
 
 export function syncAvailability(avail: Availability[]): void {
-  replaceTable('availability', avail, toDbAvail, 'user_id').catch(() => {})
+  upsertRows('availability', avail, toDbAvail, 'user_id,date').catch(() => {})
 }
 
 export function syncRequests(requests: AppRequest[]): void {
-  replaceTable('app_requests', requests, toDbRequest).catch(() => {})
+  upsertRows('app_requests', requests, toDbRequest, 'id').catch(() => {})
 }
 
 export function syncPayConfirmations(list: PayConfirmation[]): void {
-  replaceTable('pay_confirmations', list, toDbPayConf).catch(() => {})
+  upsertRows('pay_confirmations', list, toDbPayConf, 'id').catch(() => {})
 }
 
 export function syncRecipients(recipients: Recipient[]): void {
-  replaceTable('recipients', recipients, toDbRecipient).catch(() => {})
+  upsertRows('recipients', recipients, toDbRecipient, 'id').catch(() => {})
 }
 
 export function syncTemplates(templates: CommentTemplate[]): void {
-  replaceTable('comment_templates', templates, toDbTemplate).catch(() => {})
+  upsertRows('comment_templates', templates, toDbTemplate, 'id').catch(() => {})
 }
 
 export function syncVideoTasks(tasks: VideoTask[]): void {
-  replaceTable('video_tasks', tasks, toDbVideoTask).catch(() => {})
+  upsertRows('video_tasks', tasks, toDbVideoTask, 'id').catch(() => {})
 }
 
 // ---- Hydration: Supabase → localStorage on app start ----
