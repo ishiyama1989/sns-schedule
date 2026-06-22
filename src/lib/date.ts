@@ -27,10 +27,12 @@ export function monthGrid(year: number, month: number): Date[] {
 
 export const WEEKDAYS = ["日", "月", "火", "水", "木", "金", "土"];
 
-// "HH:MM" 2つから稼働時間（時間・小数）を計算
+// "HH:MM" 2つから稼働時間（時間・小数）を計算。終了が未定（空）なら0。
 export function hoursBetween(start: string, end: string): number {
+  if (!start || !end) return 0;
   const [sh, sm] = start.split(":").map(Number);
   const [eh, em] = end.split(":").map(Number);
+  if ([sh, sm, eh, em].some((n) => Number.isNaN(n))) return 0;
   const mins = eh * 60 + em - (sh * 60 + sm);
   return mins > 0 ? mins / 60 : 0;
 }

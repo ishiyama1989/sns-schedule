@@ -423,45 +423,74 @@ export function payConfirmationFor(
   );
 }
 
-export function requestPayConfirmation(
+// 管理者が稼働時間・報酬を確定して承認する（メンバーの報酬に反映される）
+export function approvePayment(
   userId: string,
   quarter: string,
-  amount: number,
-  hours: number
+  data: { hours: number; workAmount: number; videoAmount: number; note?: string }
 ): void {
   const list = getPayConfirmations();
   const idx = list.findIndex(
     (p) => p.userId === userId && p.quarter === quarter
   );
+  const workAmount = Math.round(data.workAmount) || 0;
+  const videoAmount = Math.round(data.videoAmount) || 0;
   const rec: PayConfirmation = {
     id: idx >= 0 ? list[idx].id : uid(),
     userId,
     quarter,
-    amount,
-    hours,
-    status: "requested",
-    requestedAt: today(),
+    hours: data.hours,
+    workAmount,
+    videoAmount,
+    amount: workAmount + videoAmount,
+    note: data.note?.trim() || undefined,
+    status: "approved",
+    requestedAt: idx >= 0 ? list[idx].requestedAt : today(),
+    approvedAt: today(),
   };
   if (idx >= 0) list[idx] = rec;
   else list.push(rec);
   savePayConfirmations(list);
 }
 
-export function confirmPayConfirmation(id: string): void {
-  const list = getPayConfirmations();
-  const p = list.find((x) => x.id === id);
-  if (!p || p.status !== "requested") return;
-  p.status = "confirmed";
-  p.confirmedAt = today();
-  savePayConfirmations(list);
+// 承認を取り消す（メンバーへの反映を解除）
+export function unapprovePayment(userId: string, quarter: string): void {
+  const list = getPayConfirmations().filter(
+    (p) => !(p.userId === userId && p.quarter === quarter)
+  );
+  write(KEYS.payConf, list);
+  syncPayConfirmations(list);
+  deleteRemote("pay_confirmations", { user_id: userId, quarter });
 }
 
 export function pendingPayConfirmationsForUser(
   userId: string
 ): PayConfirmation[] {
   return getPayConfirmations().filter(
-    (p) => p.userId === userId && p.status === "requested"
+    (p) => p.userId === userId && p.status === "approved"
   );
+}
+
+// ---- 承認された報酬の未読通知（メンバー） ----
+function seenPayKey(userId: string): string {
+  return `sns_seen_pay_${userId}`;
+}
+
+export function getUnseenApprovedPayments(userId: string): PayConfirmation[] {
+  const seen = read<string[]>(seenPayKey(userId), []);
+  return getPayConfirmations().filter(
+    (p) =>
+      p.userId === userId &&
+      p.status === "approved" &&
+      !seen.includes(`${p.id}:${p.approvedAt ?? ""}`)
+  );
+}
+
+export function markPaymentsSeen(userId: string): void {
+  const ids = getPayConfirmations()
+    .filter((p) => p.userId === userId && p.status === "approved")
+    .map((p) => `${p.id}:${p.approvedAt ?? ""}`);
+  write(seenPayKey(userId), ids);
 }
 
 // ---- 宛名帳 ----

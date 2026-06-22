@@ -85,18 +85,22 @@ export const RECIPIENT_TYPE_LABEL: Record<RecipientType, string> = {
   corporate: "法人",
 };
 
-// 報酬の確認依頼（オーナーが確定 → メンバーが確認 → 領収書発行）
-export type PayConfirmStatus = "requested" | "confirmed";
+// 報酬の確定・承認（オーナーが稼働時間と金額を確定して承認 → メンバーの報酬に反映）
+export type PayConfirmStatus = "requested" | "confirmed" | "approved";
 
 export interface PayConfirmation {
   id: string;
   userId: string; // 対象メンバー
   quarter: string; // 対象四半期 "2026-Q2"
-  amount: number; // 確定金額
-  hours: number;
-  status: PayConfirmStatus; // requested=確認依頼中 / confirmed=確認済み
+  hours: number; // 確定稼働時間（管理者が調整可能）
+  workAmount: number; // 稼働報酬
+  videoAmount: number; // 動画編集報酬
+  amount: number; // 合計確定額（workAmount + videoAmount）
+  note?: string; // 管理者メモ（任意）
+  status: PayConfirmStatus; // approved=承認済み（メンバーに反映）
   requestedAt: string; // "YYYY-MM-DD"
   confirmedAt?: string;
+  approvedAt?: string; // 承認日
 }
 
 // メンバーの空き状況

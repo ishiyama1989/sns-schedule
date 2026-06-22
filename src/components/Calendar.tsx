@@ -18,10 +18,10 @@ import {
   getAvailability,
   getEvents,
   getMembers,
+  getUnseenApprovedPayments,
   getUnseenAssignedEvents,
   getUsers,
   markAssignedEventsSeen,
-  pendingPayConfirmationsForUser,
   pendingRequestsForUser,
   rejectRequest,
   requestsOn,
@@ -92,7 +92,7 @@ export default function Calendar({
     [version, me]
   );
   const pendingPay = useMemo(
-    () => (me.role === "member" ? pendingPayConfirmationsForUser(me.id) : []),
+    () => (me.role === "member" ? getUnseenApprovedPayments(me.id) : []),
     [version, me]
   );
   // メンバー：自分に割り当てられた新しい予定（未確認）
@@ -238,7 +238,7 @@ export default function Calendar({
         {pendingPay.length > 0 && (
           <div className="pending-banner pay">
             <span className="pending-banner-text">
-              報酬の確認依頼が <strong>{pendingPay.length}件</strong> あります
+              報酬が確定しました（<strong>{pendingPay.length}件</strong>）
             </span>
             {onOpenMyPay && (
               <button className="primary" onClick={onOpenMyPay}>

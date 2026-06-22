@@ -9,7 +9,7 @@ import {
   currentUser,
   getUsers,
   logout,
-  pendingPayConfirmationsForUser,
+  getUnseenApprovedPayments,
   pendingRequestsForUser,
   pendingVideoTasksForUser,
   submittedVideoTasksCount,
@@ -91,7 +91,7 @@ export default function App() {
   const pendingReqCount = isOwner ? 0 : pendingRequestsForUser(user.id).length;
   const pendingVideoCount = isOwner ? 0 : pendingVideoTasksForUser(user.id).length;
   const pendingCount = pendingReqCount + pendingVideoCount;
-  const payCount = isOwner ? 0 : pendingPayConfirmationsForUser(user.id).length;
+  const payCount = isOwner ? 0 : getUnseenApprovedPayments(user.id).length;
   const taskCount = isOwner ? submittedVideoTasksCount() : 0;
   const tabs: { key: Tab; label: string; icon: LucideIcon; ownerOnly?: boolean; memberOnly?: boolean }[] = [
     { key: "calendar", label: "カレンダー", icon: CalendarIcon },

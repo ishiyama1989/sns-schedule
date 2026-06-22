@@ -125,20 +125,28 @@ const toDbPayConf = (p: PayConfirmation) => ({
   quarter: p.quarter,
   amount: p.amount,
   hours: p.hours,
+  work_amount: p.workAmount,
+  video_amount: p.videoAmount,
+  note: p.note ?? null,
   status: p.status,
   requested_at: p.requestedAt,
   confirmed_at: p.confirmedAt ?? null,
+  approved_at: p.approvedAt ?? null,
 })
 
 const fromDbPayConf = (r: any): PayConfirmation => ({
   id: r.id,
   userId: r.user_id,
   quarter: r.quarter,
-  amount: r.amount,
-  hours: r.hours,
+  amount: r.amount ?? 0,
+  hours: r.hours ?? 0,
+  workAmount: r.work_amount ?? 0,
+  videoAmount: r.video_amount ?? 0,
+  note: r.note ?? undefined,
   status: r.status,
   requestedAt: r.requested_at,
   confirmedAt: r.confirmed_at ?? undefined,
+  approvedAt: r.approved_at ?? undefined,
 })
 
 const toDbRecipient = (r: Recipient) => ({
