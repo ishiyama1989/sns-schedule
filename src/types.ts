@@ -57,6 +57,7 @@ export interface AppRequest {
   end: string; // "HH:MM"
   note: string;
   status: RequestStatus;
+  eventId?: string; // 元になった予定（あれば。承認時の重複作成を防ぐ）
 }
 
 export const REQUEST_STATUS_LABEL: Record<RequestStatus, string> = {

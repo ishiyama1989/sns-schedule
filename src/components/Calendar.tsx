@@ -677,6 +677,7 @@ function EventRequestForm({
         start: event.start,
         end: event.end,
         note: event.note,
+        eventId: event.id,
       });
     }
     sendPushToUsers(
@@ -769,6 +770,7 @@ function EventForm({
             start: saved.start,
             end: saved.end,
             note: saved.note,
+            eventId: saved.id,
           });
         }
       }

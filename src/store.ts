@@ -380,6 +380,32 @@ export function approveRequest(id: string): void {
   if (!r || r.status !== "pending") return;
   r.status = "approved";
   saveRequests(rs);
+
+  const events = getEvents();
+  // 1) eventId が分かればその予定（同一端末で依頼を作った場合）
+  let target = r.eventId ? events.find((e) => e.id === r.eventId) : undefined;
+  // 2) 内容が一致する既存予定を探す（重複作成を防ぐ・端末をまたいでも有効）
+  if (!target) {
+    target = events.find(
+      (e) =>
+        e.date === r.date &&
+        e.title === r.title &&
+        e.type === r.type &&
+        e.start === r.start &&
+        e.end === r.end
+    );
+  }
+  // 既存の予定があれば、その予定に担当者を追加するだけ（新規作成しない）
+  if (target) {
+    if (!target.assigneeIds.includes(r.toUserId)) {
+      upsertEvent({
+        ...target,
+        assigneeIds: [...target.assigneeIds, r.toUserId],
+      });
+    }
+    return;
+  }
+  // 3) 元になる予定がない（手動依頼など）場合のみ新規作成
   upsertEvent({
     id: uid(),
     date: r.date,
