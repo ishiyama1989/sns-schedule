@@ -9,6 +9,7 @@ import type {
   User,
   VideoTask,
 } from "./types";
+import type { EventApproval } from "./types";
 import {
   syncUsers,
   syncEvents,
@@ -18,6 +19,7 @@ import {
   syncRecipients,
   syncTemplates,
   syncVideoTasks,
+  syncEventApprovals,
   deleteRemote,
 } from "./lib/supabase";
 
@@ -31,6 +33,7 @@ const KEYS = {
   payConf: "sns_pay_confirmations",
   recipients: "sns_recipients",
   videoTasks: "sns_video_tasks",
+  eventApprovals: "sns_event_approvals",
   version: "sns_schema_version",
 };
 
@@ -555,4 +558,111 @@ export function pendingVideoTasksForUser(userId: string): VideoTask[] {
 
 export function submittedVideoTasksCount(): number {
   return getVideoTasks().filter((t) => t.status === "submitted").length;
+}
+
+// ---- 予定ごとの報酬承認 ----
+export function getEventApprovals(): EventApproval[] {
+  return read<EventApproval[]>(KEYS.eventApprovals, []);
+}
+
+function saveEventApprovals(list: EventApproval[]): void {
+  write(KEYS.eventApprovals, list);
+  syncEventApprovals(list);
+}
+
+export function approvalForEvent(
+  eventId: string,
+  userId: string
+): EventApproval | null {
+  return (
+    getEventApprovals().find(
+      (a) => a.eventId === eventId && a.userId === userId
+    ) ?? null
+  );
+}
+
+// 管理者：予定の報酬をメンバーに承認依頼する（金額調整可）
+export function requestEventApproval(
+  eventId: string,
+  userId: string,
+  hours: number,
+  amount: number,
+  note?: string
+): void {
+  const list = getEventApprovals();
+  const idx = list.findIndex(
+    (a) => a.eventId === eventId && a.userId === userId
+  );
+  const rec: EventApproval = {
+    id: idx >= 0 ? list[idx].id : uid(),
+    eventId,
+    userId,
+    hours,
+    amount: Math.round(amount) || 0,
+    note: note?.trim() || undefined,
+    status: "requested",
+    requestedAt: today(),
+  };
+  if (idx >= 0) list[idx] = rec;
+  else list.push(rec);
+  saveEventApprovals(list);
+}
+
+// メンバー：承認依頼を承認（報酬が確定）
+export function approveEventApproval(id: string): void {
+  const list = getEventApprovals();
+  const a = list.find((x) => x.id === id);
+  if (!a || a.status !== "requested") return;
+  a.status = "approved";
+  a.approvedAt = today();
+  saveEventApprovals(list);
+}
+
+// メンバー：承認依頼を却下
+export function rejectEventApproval(id: string): void {
+  const list = getEventApprovals();
+  const a = list.find((x) => x.id === id);
+  if (!a || a.status !== "requested") return;
+  a.status = "rejected";
+  saveEventApprovals(list);
+}
+
+// 管理者：まだ承認依頼を送っていない「過ぎた予定×担当者」の一覧
+export interface AwaitingApprovalItem {
+  event: ScheduleEvent;
+  userId: string;
+}
+export function eventsAwaitingAdmin(): AwaitingApprovalItem[] {
+  const t = today();
+  const approvals = getEventApprovals();
+  const items: AwaitingApprovalItem[] = [];
+  for (const e of getEvents()) {
+    if (e.type === "delivery") continue;
+    if (e.date >= t) continue; // 過ぎた予定のみ
+    for (const userId of e.assigneeIds) {
+      const has = approvals.some(
+        (a) => a.eventId === e.id && a.userId === userId
+      );
+      if (!has) items.push({ event: e, userId });
+    }
+  }
+  return items.sort((a, b) => (a.event.date < b.event.date ? 1 : -1));
+}
+
+export function countAwaitingAdmin(): number {
+  return eventsAwaitingAdmin().length;
+}
+
+// メンバー宛の承認待ち（承認依頼が届いている）
+export function pendingEventApprovalsForUser(userId: string): EventApproval[] {
+  return getEventApprovals().filter(
+    (a) => a.userId === userId && a.status === "requested"
+  );
+}
+
+// メンバーの承認済み報酬
+export function approvedEventApprovalsForUser(userId: string): EventApproval[] {
+  return getEventApprovals().filter(
+    (a) => a.userId === userId && a.status === "approved"
+  );
 }

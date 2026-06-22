@@ -9,7 +9,8 @@ import {
   currentUser,
   getUsers,
   logout,
-  getUnseenApprovedPayments,
+  countAwaitingAdmin,
+  pendingEventApprovalsForUser,
   pendingRequestsForUser,
   pendingVideoTasksForUser,
   submittedVideoTasksCount,
@@ -91,8 +92,9 @@ export default function App() {
   const pendingReqCount = isOwner ? 0 : pendingRequestsForUser(user.id).length;
   const pendingVideoCount = isOwner ? 0 : pendingVideoTasksForUser(user.id).length;
   const pendingCount = pendingReqCount + pendingVideoCount;
-  const payCount = isOwner ? 0 : getUnseenApprovedPayments(user.id).length;
+  const payCount = isOwner ? 0 : pendingEventApprovalsForUser(user.id).length;
   const taskCount = isOwner ? submittedVideoTasksCount() : 0;
+  const awaitingCount = isOwner ? countAwaitingAdmin() : 0;
   const tabs: { key: Tab; label: string; icon: LucideIcon; ownerOnly?: boolean; memberOnly?: boolean }[] = [
     { key: "calendar", label: "カレンダー", icon: CalendarIcon },
     { key: "availability", label: "稼働日設定", icon: Clock, memberOnly: true },
@@ -114,7 +116,12 @@ export default function App() {
       icon: ClipboardList,
       ownerOnly: true,
     },
-    { key: "payments", label: "支払い集計", icon: BarChart2, ownerOnly: true },
+    {
+      key: "payments",
+      label: `支払い集計${awaitingCount > 0 ? `（${awaitingCount}）` : ""}`,
+      icon: BarChart2,
+      ownerOnly: true,
+    },
     { key: "members", label: "メンバー管理", icon: Users, ownerOnly: true },
     { key: "settings", label: "設定", icon: Settings },
   ];
@@ -164,6 +171,7 @@ export default function App() {
             me={user}
             onOpenRequests={() => setTab("requests")}
             onOpenMyPay={() => setTab("mypay")}
+            onOpenPayments={() => setTab("payments")}
           />
         )}
         {tab === "availability" && !isOwner && <AvailabilityView me={user} />}

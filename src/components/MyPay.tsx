@@ -1,68 +1,96 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   EVENT_TYPE_LABEL,
   HONORIFIC,
   RECIPIENT_TYPE_LABEL,
   type RecipientType,
+  type ScheduleEvent,
   type User,
 } from "../types";
 import {
   addRecipient,
+  approveEventApproval,
+  approvedEventApprovalsForUser,
   deleteRecipient,
   getEvents,
   getRecipients,
   getVideoTasks,
-  markPaymentsSeen,
-  payConfirmationFor,
+  pendingEventApprovalsForUser,
+  rejectEventApproval,
 } from "../store";
 import { quarterLabel, quarterOf, todayStr, yen } from "../lib/date";
-import { payLinesFor, quartersForUserWork, videoTasksForQuarter } from "../lib/pay";
+import { videoTasksForQuarter } from "../lib/pay";
 import { openReceiptPdf } from "../lib/receipt";
 import { stampSvg } from "../lib/stamp";
 
-// メンバーが自分の報酬（管理者が承認した確定額）を確認し、領収書を発行する画面
+// メンバーが報酬の承認依頼を承認し、確定報酬を確認・領収書を発行する画面
 export default function MyPay({ me }: { me: User }) {
-  const events = useMemo(() => getEvents(), []);
-  const videoTasks = useMemo(() => getVideoTasks(), []);
+  const [version, setVersion] = useState(0);
+  const events = useMemo(() => getEvents(), [version]);
+  const videoTasks = useMemo(() => getVideoTasks(), [version]);
 
-  // 承認された報酬の通知を既読にする
-  useEffect(() => {
-    markPaymentsSeen(me.id);
-  }, [me.id]);
+  const eventById = useMemo(() => {
+    const m: Record<string, ScheduleEvent> = {};
+    for (const e of events) m[e.id] = e;
+    return m;
+  }, [events]);
 
+  // 承認待ちの報酬（管理者からの承認依頼）
+  const pending = useMemo(
+    () => pendingEventApprovalsForUser(me.id),
+    [me.id, version]
+  );
+  // 承認済みの報酬
+  const approved = useMemo(
+    () => approvedEventApprovalsForUser(me.id),
+    [me.id, version]
+  );
+
+  // 期間（四半期）の一覧
   const quarters = useMemo(() => {
-    const set = new Set<string>(quartersForUserWork(events, me.id));
+    const set = new Set<string>();
+    for (const a of approved) {
+      const e = eventById[a.eventId];
+      if (e) set.add(quarterOf(e.date));
+    }
     for (const t of videoTasks)
       if (t.toUserId === me.id && t.status === "completed")
         set.add(quarterOf(t.completedAt ?? t.deadline));
     const arr = Array.from(set).sort().reverse();
     return arr.length ? arr : [quarterOf(todayStr())];
-  }, [events, videoTasks, me.id]);
+  }, [approved, videoTasks, eventById, me.id]);
 
   const [quarter, setQuarter] = useState(quarters[0]);
+  if (!quarters.includes(quarter)) setQuarter(quarters[0]);
+
   const [issuedTo, setIssuedTo] = useState("");
   const [recipientType, setRecipientType] = useState<RecipientType>("corporate");
-  const [version, setVersion] = useState(0);
 
   const recipients = useMemo(() => getRecipients(me.id), [me.id, version]);
 
-  // 自動計算の稼働明細（参考表示用）
-  const lines = useMemo(
-    () => payLinesFor(events, me.id, me.hourlyRate, quarter),
-    [events, me, quarter]
+  // 選択中の期間の確定報酬
+  const approvedInQ = useMemo(
+    () =>
+      approved
+        .filter((a) => {
+          const e = eventById[a.eventId];
+          return e && quarterOf(e.date) === quarter;
+        })
+        .sort((a, b) => {
+          const da = eventById[a.eventId]?.date ?? "";
+          const db = eventById[b.eventId]?.date ?? "";
+          return da < db ? -1 : 1;
+        }),
+    [approved, eventById, quarter]
   );
   const vTasks = useMemo(
     () => videoTasksForQuarter(videoTasks, me.id, quarter),
     [videoTasks, me.id, quarter]
   );
 
-  // 管理者が承認した確定報酬
-  const confirmation = useMemo(
-    () => payConfirmationFor(me.id, quarter),
-    [me.id, quarter, version]
-  );
-  const isApproved = confirmation?.status === "approved";
-  const rewardAmount = isApproved ? confirmation!.amount : 0;
+  const workReward = approvedInQ.reduce((s, a) => s + a.amount, 0);
+  const videoReward = vTasks.reduce((s, t) => s + (t.amount || 0), 0);
+  const rewardAmount = workReward + videoReward;
 
   function saveRecipient() {
     if (!issuedTo.trim()) return alert("宛名を入力してください。");
@@ -71,41 +99,29 @@ export default function MyPay({ me }: { me: User }) {
   }
 
   function issueReceipt() {
-    if (!isApproved) {
-      alert("管理者が報酬を承認すると領収書を発行できます。");
-      return;
-    }
     if (rewardAmount <= 0) {
-      alert("確定報酬がないため、領収書を発行できません。");
+      alert("この期間の確定報酬がないため、領収書を発行できません。");
       return;
     }
     if (!issuedTo.trim()) {
       alert("宛名を入力（または選択）してください。");
       return;
     }
-    // 領収書の明細：稼働明細 ＋ 動画報酬 ＋（管理者調整があれば）調整行
-    const receiptLines = lines.map((l) => ({
-      date: l.event.date.replace(/-/g, "/"),
-      title: l.event.title,
-      hours: l.hours,
-      amount: l.amount,
-    }));
-    const eventSum = lines.reduce((s, l) => s + l.amount, 0);
-    const workAdjust = confirmation!.workAmount - eventSum;
-    if (workAdjust !== 0) {
+    const receiptLines = approvedInQ.map((a) => {
+      const e = eventById[a.eventId];
+      return {
+        date: e ? e.date.replace(/-/g, "/") : "",
+        title: e?.title ?? "報酬",
+        hours: a.hours,
+        amount: a.amount,
+      };
+    });
+    for (const t of vTasks) {
       receiptLines.push({
-        date: "",
-        title: "稼働報酬の調整",
+        date: (t.completedAt ?? t.deadline).replace(/-/g, "/"),
+        title: `動画編集: ${t.title}`,
         hours: 0,
-        amount: workAdjust,
-      });
-    }
-    if (confirmation!.videoAmount > 0) {
-      receiptLines.push({
-        date: "",
-        title: "動画編集報酬",
-        hours: 0,
-        amount: confirmation!.videoAmount,
+        amount: t.amount,
       });
     }
     openReceiptPdf({
@@ -129,14 +145,69 @@ export default function MyPay({ me }: { me: User }) {
     });
   }
 
+  const canIssue = rewardAmount > 0;
+
   return (
     <div className="mypay-view">
       <div className="section-head">
         <h2>報酬の確認</h2>
         <p className="muted">
-          管理者が承認した報酬がここに反映されます（時給 {yen(me.hourlyRate)}/時）。
+          管理者からの承認依頼を承認すると報酬が確定します（時給 {yen(me.hourlyRate)}/時）。
         </p>
       </div>
+
+      {/* 承認待ちの報酬 */}
+      {pending.length > 0 && (
+        <div className="approval-pending-box">
+          <h3 className="req-section-title">
+            📢 承認待ちの報酬（{pending.length}件）
+          </h3>
+          <div className="approval-list">
+            {pending.map((a) => {
+              const e = eventById[a.eventId];
+              return (
+                <div key={a.id} className="approval-card">
+                  <div className="approval-card-main">
+                    <div className="approval-card-head">
+                      <span className="req-date">
+                        {e ? e.date.replace(/-/g, "/") : "—"}
+                      </span>
+                      {e && <span className="tag">{EVENT_TYPE_LABEL[e.type]}</span>}
+                    </div>
+                    <div className="approval-card-title">{e?.title ?? "報酬"}</div>
+                    {e && (
+                      <div className="approval-card-meta">
+                        🕒 {e.start}–{e.end || "未定"} ／ 📍 {e.location || "未設定"}
+                      </div>
+                    )}
+                    <div className="approval-card-amount">報酬 {yen(a.amount)}</div>
+                  </div>
+                  <div className="approval-card-action">
+                    <button
+                      className="ghost danger mini"
+                      onClick={() => {
+                        rejectEventApproval(a.id);
+                        setVersion((v) => v + 1);
+                      }}
+                    >
+                      却下
+                    </button>
+                    <button
+                      className="primary"
+                      onClick={() => {
+                        approveEventApproval(a.id);
+                        setVersion((v) => v + 1);
+                      }}
+                    >
+                      承認する
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       <label className="quarter-select">
         対象期間
@@ -149,107 +220,71 @@ export default function MyPay({ me }: { me: User }) {
         </select>
       </label>
 
-      {/* 確定報酬の表示 */}
-      {isApproved ? (
-        <div className="pay-summary">
-          <div className="pay-card">
-            <span className="pay-label">稼働時間</span>
-            <span className="pay-value">{confirmation!.hours.toFixed(1)}h</span>
-          </div>
-          <div className="pay-card">
-            <span className="pay-label">稼働報酬</span>
-            <span className="pay-value">{yen(confirmation!.workAmount)}</span>
-          </div>
-          <div className="pay-card">
-            <span className="pay-label">動画報酬</span>
-            <span className="pay-value">{yen(confirmation!.videoAmount)}</span>
-          </div>
-          <div className="pay-card highlight">
-            <span className="pay-label">確定報酬</span>
-            <span className="pay-value">{yen(rewardAmount)}</span>
-          </div>
+      <div className="pay-summary">
+        <div className="pay-card">
+          <span className="pay-label">稼働報酬</span>
+          <span className="pay-value">{yen(workReward)}</span>
         </div>
-      ) : (
-        <div className="pay-confirm-box pending">
-          ⏳ 管理者が報酬を承認すると、ここに確定報酬が表示されます。
-          <div className="muted small" style={{ marginTop: 6 }}>
-            （現在の自動集計：稼働 {lines.reduce((s, l) => s + l.hours, 0).toFixed(1)}h ・
-            動画 {vTasks.length}件）
-          </div>
+        <div className="pay-card">
+          <span className="pay-label">動画報酬</span>
+          <span className="pay-value">{yen(videoReward)}</span>
         </div>
-      )}
-      {isApproved && confirmation!.note && (
-        <p className="muted small">管理者メモ：{confirmation!.note}</p>
-      )}
-      {isApproved && (
-        <div className="pay-confirm-box confirmed">
-          ✅ 報酬が承認されました（{confirmation!.approvedAt?.replace(/-/g, "/")}）。
-          領収書を発行できます。
+        <div className="pay-card highlight">
+          <span className="pay-label">確定報酬</span>
+          <span className="pay-value">{yen(rewardAmount)}</span>
         </div>
-      )}
+      </div>
 
-      {/* 稼働明細（参考） */}
-      <h3 className="req-section-title">稼働明細</h3>
+      {/* 確定した稼働報酬の明細 */}
+      <h3 className="req-section-title">確定した報酬明細</h3>
       <table className="members-table">
         <thead>
           <tr>
             <th>日付</th>
             <th>内容</th>
             <th>種別</th>
-            <th>稼働</th>
-            <th>金額</th>
+            <th>報酬</th>
           </tr>
         </thead>
         <tbody>
-          {lines.length === 0 ? (
+          {approvedInQ.length === 0 && vTasks.length === 0 ? (
             <tr>
-              <td colSpan={5} className="muted">この期間の稼働はありません。</td>
+              <td colSpan={4} className="muted">
+                この期間の確定報酬はありません。
+              </td>
             </tr>
           ) : (
-            lines.map((l) => (
-              <tr key={l.event.id}>
-                <td>{l.event.date.replace(/-/g, "/")}</td>
-                <td>{l.event.title}</td>
-                <td className="muted">{EVENT_TYPE_LABEL[l.event.type]}</td>
-                <td>{l.hours.toFixed(1)}h</td>
-                <td className="amount">{yen(l.amount)}</td>
-              </tr>
-            ))
-          )}
-        </tbody>
-      </table>
-
-      {/* 動画編集報酬の明細 */}
-      {vTasks.length > 0 && (
-        <>
-          <h3 className="req-section-title">動画編集報酬</h3>
-          <table className="members-table">
-            <thead>
-              <tr>
-                <th>完了日</th>
-                <th>内容</th>
-                <th>報酬</th>
-              </tr>
-            </thead>
-            <tbody>
+            <>
+              {approvedInQ.map((a) => {
+                const e = eventById[a.eventId];
+                return (
+                  <tr key={a.id}>
+                    <td>{e ? e.date.replace(/-/g, "/") : "—"}</td>
+                    <td>{e?.title ?? "報酬"}</td>
+                    <td className="muted">{e ? EVENT_TYPE_LABEL[e.type] : "—"}</td>
+                    <td className="amount">{yen(a.amount)}</td>
+                  </tr>
+                );
+              })}
               {vTasks.map((t) => (
                 <tr key={t.id}>
                   <td>{(t.completedAt ?? t.deadline).replace(/-/g, "/")}</td>
                   <td>{t.title}</td>
+                  <td className="muted">動画編集</td>
                   <td className="amount">{yen(t.amount)}</td>
                 </tr>
               ))}
-            </tbody>
-          </table>
-        </>
-      )}
+            </>
+          )}
+        </tbody>
+      </table>
 
       <div className="receipt-box">
         <h3>領収書の発行</h3>
         <p className="muted small">
-          {isApproved
+          {canIssue
             ? "宛名を選ぶか入力して発行できます。個人は「様」、法人は「御中」が付きます。印刷ダイアログで「PDFとして保存」を選ぶとPDFになります。"
-            : "管理者が報酬を承認すると発行できるようになります。"}
+            : "報酬が確定すると発行できるようになります。"}
         </p>
 
         {recipients.length > 0 && (
@@ -292,7 +327,7 @@ export default function MyPay({ me }: { me: User }) {
               key={t}
               type="button"
               className={`type-btn ${recipientType === t ? "on" : ""}`}
-              disabled={!isApproved}
+              disabled={!canIssue}
               onClick={() => setRecipientType(t)}
             >
               {RECIPIENT_TYPE_LABEL[t]}（{HONORIFIC[t]}）
@@ -307,12 +342,12 @@ export default function MyPay({ me }: { me: User }) {
             placeholder={
               recipientType === "individual" ? "宛名（例: 山田 花子）" : "宛名（例: 株式会社○○）"
             }
-            disabled={!isApproved}
+            disabled={!canIssue}
           />
-          <button className="ghost" onClick={saveRecipient} disabled={!isApproved}>
+          <button className="ghost" onClick={saveRecipient} disabled={!canIssue}>
             ＋宛名を登録
           </button>
-          <button className="primary" onClick={issueReceipt} disabled={!isApproved}>
+          <button className="primary" onClick={issueReceipt} disabled={!canIssue}>
             🧾 領収書を発行（PDF）
           </button>
         </div>

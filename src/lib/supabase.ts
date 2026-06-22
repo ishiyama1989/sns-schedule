@@ -3,6 +3,7 @@ import type {
   AppRequest,
   Availability,
   CommentTemplate,
+  EventApproval,
   PayConfirmation,
   Recipient,
   ScheduleEvent,
@@ -207,6 +208,30 @@ const fromDbVideoTask = (r: any): VideoTask => ({
   completedAt: r.completed_at ?? undefined,
 })
 
+const toDbEventApproval = (a: EventApproval) => ({
+  id: a.id,
+  event_id: a.eventId,
+  user_id: a.userId,
+  hours: a.hours,
+  amount: a.amount,
+  note: a.note ?? null,
+  status: a.status,
+  requested_at: a.requestedAt,
+  approved_at: a.approvedAt ?? null,
+})
+
+const fromDbEventApproval = (r: any): EventApproval => ({
+  id: r.id,
+  eventId: r.event_id,
+  userId: r.user_id,
+  hours: r.hours ?? 0,
+  amount: r.amount ?? 0,
+  note: r.note ?? undefined,
+  status: r.status,
+  requestedAt: r.requested_at,
+  approvedAt: r.approved_at ?? undefined,
+})
+
 // ---- Sync helper: 行ごとに upsert（全削除はしない＝データ消失を防ぐ） ----
 async function upsertRows<T>(
   table: string,
@@ -257,6 +282,10 @@ export function syncVideoTasks(tasks: VideoTask[]): void {
   upsertRows('video_tasks', tasks, toDbVideoTask, 'id').catch(() => {})
 }
 
+export function syncEventApprovals(list: EventApproval[]): void {
+  upsertRows('event_approvals', list, toDbEventApproval, 'id').catch(() => {})
+}
+
 // ---- Hydration: Supabase → localStorage on app start ----
 
 const SCHEMA_VERSION = '5'
@@ -290,6 +319,19 @@ export async function hydrateFromSupabase(): Promise<{ ok: boolean; userCount: n
     if (videoTasks.data) localStorage.setItem('sns_video_tasks', JSON.stringify(videoTasks.data.map(fromDbVideoTask)))
 
     localStorage.setItem(SCHEMA_KEY, SCHEMA_VERSION)
+
+    // event_approvals は後から追加したテーブル。未作成でも全体を壊さないよう個別取得。
+    try {
+      const approvals = await supabase.from('event_approvals').select('*')
+      if (!approvals.error && approvals.data) {
+        localStorage.setItem(
+          'sns_event_approvals',
+          JSON.stringify(approvals.data.map(fromDbEventApproval))
+        )
+      }
+    } catch {
+      /* テーブル未作成などは無視 */
+    }
 
     return { ok: true, userCount: users.data?.length ?? 0 }
   } catch {

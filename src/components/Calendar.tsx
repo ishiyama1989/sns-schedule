@@ -17,11 +17,12 @@ import {
   deleteEvent,
   getAvailability,
   getEvents,
+  eventsAwaitingAdmin,
   getMembers,
-  getUnseenApprovedPayments,
   getUnseenAssignedEvents,
   getUsers,
   markAssignedEventsSeen,
+  pendingEventApprovalsForUser,
   pendingRequestsForUser,
   rejectRequest,
   requestsOn,
@@ -50,10 +51,12 @@ export default function Calendar({
   me,
   onOpenRequests,
   onOpenMyPay,
+  onOpenPayments,
 }: {
   me: User;
   onOpenRequests?: () => void;
   onOpenMyPay?: () => void;
+  onOpenPayments?: () => void;
 }) {
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());
@@ -92,7 +95,12 @@ export default function Calendar({
     [version, me]
   );
   const pendingPay = useMemo(
-    () => (me.role === "member" ? getUnseenApprovedPayments(me.id) : []),
+    () => (me.role === "member" ? pendingEventApprovalsForUser(me.id) : []),
+    [version, me]
+  );
+  // オーナー：過ぎた予定で承認依頼を送るべきもの
+  const awaitingAdmin = useMemo(
+    () => (me.role === "owner" ? eventsAwaitingAdmin() : []),
     [version, me]
   );
   // メンバー：自分に割り当てられた新しい予定（未確認）
@@ -238,10 +246,22 @@ export default function Calendar({
         {pendingPay.length > 0 && (
           <div className="pending-banner pay">
             <span className="pending-banner-text">
-              報酬が確定しました（<strong>{pendingPay.length}件</strong>）
+              報酬の承認依頼が <strong>{pendingPay.length}件</strong> 届いています
             </span>
             {onOpenMyPay && (
               <button className="primary" onClick={onOpenMyPay}>
+                確認する →
+              </button>
+            )}
+          </div>
+        )}
+        {awaitingAdmin.length > 0 && (
+          <div className="pending-banner">
+            <span className="pending-banner-text">
+              終了した予定が <strong>{awaitingAdmin.length}件</strong> あります。報酬の承認依頼を送りましょう
+            </span>
+            {onOpenPayments && (
+              <button className="primary" onClick={onOpenPayments}>
                 確認する →
               </button>
             )}
