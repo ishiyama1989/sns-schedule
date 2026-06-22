@@ -339,6 +339,29 @@ label input, label select, label textarea { margin-top: 6px; font-weight: 400; }
 .pending-banner.event .primary { background: linear-gradient(135deg, #3b82f6, #60a5fa); box-shadow: 0 2px 8px rgba(59,130,246,0.28); }
 .unseen-dates { display: block; font-size: 11.5px; font-weight: 500; opacity: 0.8; margin-top: 2px; }
 
+/* カレンダー上部の承認待ち依頼（内容＋承認ボタン） */
+.pending-requests {
+  background: #fdf8f0;
+  border: 1px solid rgba(200,147,58,0.22);
+  border-left: 3px solid var(--warning);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  margin-bottom: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.pending-requests-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.banner-req-card {
+  background: #fff;
+  margin: 0;
+}
+
 /* 報酬確認 */
 .pay-confirm-box { margin-top: 20px; border-radius: var(--radius); padding: 16px 18px; font-size: 14px; }
 .pay-confirm-box.requested { background: #fff8ee; border: 1.5px solid rgba(255,122,89,0.20); border-left: 3px solid var(--primary); }

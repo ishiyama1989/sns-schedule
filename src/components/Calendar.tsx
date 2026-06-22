@@ -12,6 +12,7 @@ import {
 } from "../types";
 import {
   addRequest,
+  approveRequest,
   availabilityOn,
   deleteEvent,
   getAvailability,
@@ -22,6 +23,7 @@ import {
   markAssignedEventsSeen,
   pendingPayConfirmationsForUser,
   pendingRequestsForUser,
+  rejectRequest,
   requestsOn,
   upsertEvent,
   uid,
@@ -186,15 +188,53 @@ export default function Calendar({
           </div>
         )}
         {pending.length > 0 && (
-          <div className="pending-banner">
-            <span className="pending-banner-text">
-              承認待ちの依頼が <strong>{pending.length}件</strong> あります
-            </span>
-            {onOpenRequests && (
-              <button className="primary" onClick={onOpenRequests}>
-                確認する →
-              </button>
-            )}
+          <div className="pending-requests">
+            <div className="pending-requests-head">
+              <span className="pending-banner-text">
+                承認待ちの依頼が <strong>{pending.length}件</strong> あります
+              </span>
+              {onOpenRequests && (
+                <button className="ghost mini" onClick={onOpenRequests}>
+                  一覧で見る →
+                </button>
+              )}
+            </div>
+            {pending.map((r) => (
+              <div key={r.id} className="req-card banner-req-card">
+                <div className="req-card-head">
+                  <span className="req-date">{r.date.replace(/-/g, "/")}</span>
+                  <span className="tag">{EVENT_TYPE_LABEL[r.type]}</span>
+                </div>
+                <div className="req-card-title">{r.title}</div>
+                <div className="req-card-meta">
+                  🕒 {r.start}–{r.end || "未定"} ／ 📍 {r.location || "未設定"}
+                </div>
+                <div className="req-card-meta">
+                  依頼者: {users.find((u) => u.id === r.fromUserId)?.name ?? "管理者"}
+                </div>
+                {r.note && <div className="req-card-note">{r.note}</div>}
+                <div className="req-card-actions">
+                  <button
+                    className="ghost danger"
+                    onClick={() => {
+                      rejectRequest(r.id);
+                      refresh();
+                    }}
+                  >
+                    却下
+                  </button>
+                  <button
+                    className="primary"
+                    onClick={() => {
+                      approveRequest(r.id);
+                      refresh();
+                    }}
+                  >
+                    承認する
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
         )}
         {pendingPay.length > 0 && (
