@@ -50,6 +50,18 @@ export default function App() {
     })();
   }, []);
 
+  // アプリがバックグラウンドから復帰したときにSupabaseから最新データを再取得
+  useEffect(() => {
+    const onVisible = async () => {
+      if (document.visibilityState === "visible") {
+        await hydrateFromSupabase();
+        setUser(currentUser());
+      }
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => document.removeEventListener("visibilitychange", onVisible);
+  }, []);
+
   if (loading)
     return (
       <div className="loading-screen">
