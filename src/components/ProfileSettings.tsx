@@ -137,111 +137,113 @@ export default function ProfileSettings({
         </div>
       </div>
 
-      <div className="settings-card">
-        <h3>デジタル印影</h3>
-        <label className="check-line">
-          <input
-            type="checkbox"
-            checked={stampOn}
-            onChange={(e) => {
-              setStampOn(e.target.checked);
-              setSaved(false);
-            }}
-          />
-          領収書に印影を使用する
-        </label>
+      {me.role !== "owner" && (
+        <div className="settings-card">
+          <h3>デジタル印影</h3>
+          <label className="check-line">
+            <input
+              type="checkbox"
+              checked={stampOn}
+              onChange={(e) => {
+                setStampOn(e.target.checked);
+                setSaved(false);
+              }}
+            />
+            領収書に印影を使用する
+          </label>
 
-        {stampOn && (
-          <div className="stamp-editor">
-            <div className="stamp-fields">
-              <label>
-                印影の文字（苗字や名前）
-                <input
-                  value={stampText}
-                  onChange={(e) => {
-                    setStampText(e.target.value);
-                    setSaved(false);
-                  }}
-                  placeholder="例: 山田"
-                  maxLength={9}
-                />
-              </label>
-              <div className="row">
+          {stampOn && (
+            <div className="stamp-editor">
+              <div className="stamp-fields">
                 <label>
-                  向き
-                  <div className="shape-toggle">
-                    {(["vertical", "horizontal"] as StampOrientation[]).map((o) => (
-                      <button
-                        key={o}
-                        type="button"
-                        className={`type-btn ${stampOrientation === o ? "on" : ""}`}
-                        onClick={() => {
-                          setStampOrientation(o);
-                          setSaved(false);
-                        }}
-                      >
-                        {o === "vertical" ? "縦書き" : "横書き"}
-                      </button>
-                    ))}
-                  </div>
+                  印影の文字（苗字や名前）
+                  <input
+                    value={stampText}
+                    onChange={(e) => {
+                      setStampText(e.target.value);
+                      setSaved(false);
+                    }}
+                    placeholder="例: 山田"
+                    maxLength={9}
+                  />
                 </label>
+                <div className="row">
+                  <label>
+                    向き
+                    <div className="shape-toggle">
+                      {(["vertical", "horizontal"] as StampOrientation[]).map((o) => (
+                        <button
+                          key={o}
+                          type="button"
+                          className={`type-btn ${stampOrientation === o ? "on" : ""}`}
+                          onClick={() => {
+                            setStampOrientation(o);
+                            setSaved(false);
+                          }}
+                        >
+                          {o === "vertical" ? "縦書き" : "横書き"}
+                        </button>
+                      ))}
+                    </div>
+                  </label>
+                  <label>
+                    形
+                    <div className="shape-toggle">
+                      {(["circle", "square"] as StampShape[]).map((s) => (
+                        <button
+                          key={s}
+                          type="button"
+                          className={`type-btn ${stampShape === s ? "on" : ""}`}
+                          onClick={() => {
+                            setStampShape(s);
+                            setSaved(false);
+                          }}
+                        >
+                          {s === "circle" ? "丸" : "角"}
+                        </button>
+                      ))}
+                    </div>
+                  </label>
+                </div>
                 <label>
-                  形
-                  <div className="shape-toggle">
-                    {(["circle", "square"] as StampShape[]).map((s) => (
+                  フォント
+                  <div className="font-toggle">
+                    {(Object.keys(STAMP_FONTS) as StampFont[]).map((f) => (
                       <button
-                        key={s}
+                        key={f}
                         type="button"
-                        className={`type-btn ${stampShape === s ? "on" : ""}`}
+                        className={`type-btn ${stampFont === f ? "on" : ""}`}
+                        style={{ fontFamily: STAMP_FONTS[f].family }}
                         onClick={() => {
-                          setStampShape(s);
+                          setStampFont(f);
                           setSaved(false);
                         }}
                       >
-                        {s === "circle" ? "丸" : "角"}
+                        {STAMP_FONTS[f].label}
                       </button>
                     ))}
                   </div>
                 </label>
               </div>
-              <label>
-                フォント
-                <div className="font-toggle">
-                  {(Object.keys(STAMP_FONTS) as StampFont[]).map((f) => (
-                    <button
-                      key={f}
-                      type="button"
-                      className={`type-btn ${stampFont === f ? "on" : ""}`}
-                      style={{ fontFamily: STAMP_FONTS[f].family }}
-                      onClick={() => {
-                        setStampFont(f);
-                        setSaved(false);
-                      }}
-                    >
-                      {STAMP_FONTS[f].label}
-                    </button>
-                  ))}
-                </div>
-              </label>
+              <div className="stamp-preview">
+                <span className="muted small">プレビュー</span>
+                <div
+                  className="stamp-svg"
+                  dangerouslySetInnerHTML={{
+                    __html: stampSvg(
+                      stampText || "印",
+                      stampShape,
+                      stampOrientation,
+                      stampFont,
+                      88
+                    ),
+                  }}
+                />
+              </div>
             </div>
-            <div className="stamp-preview">
-              <span className="muted small">プレビュー</span>
-              <div
-                className="stamp-svg"
-                dangerouslySetInnerHTML={{
-                  __html: stampSvg(
-                    stampText || "印",
-                    stampShape,
-                    stampOrientation,
-                    stampFont,
-                    88
-                  ),
-                }}
-              />
-            </div>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
+      )}
 
       <div className="settings-card">
         <h3>パスワード変更</h3>
