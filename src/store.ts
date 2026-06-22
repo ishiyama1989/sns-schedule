@@ -260,6 +260,27 @@ export function deleteEvent(id: string): void {
   saveEvents(getEvents().filter((e) => e.id !== id));
 }
 
+// ---- アプリ内通知（自分に割り当てられた新しい予定） ----
+function seenEventsKey(userId: string): string {
+  return `sns_seen_events_${userId}`;
+}
+
+// まだ確認していない、自分が担当の予定
+export function getUnseenAssignedEvents(userId: string): ScheduleEvent[] {
+  const seen = read<string[]>(seenEventsKey(userId), []);
+  return getEvents().filter(
+    (e) => e.assigneeIds.includes(userId) && !seen.includes(e.id)
+  );
+}
+
+// 自分が担当の予定をすべて「確認済み」にする
+export function markAssignedEventsSeen(userId: string): void {
+  const ids = getEvents()
+    .filter((e) => e.assigneeIds.includes(userId))
+    .map((e) => e.id);
+  write(seenEventsKey(userId), ids);
+}
+
 // ---- 空き状況 ----
 export function getAvailability(): Availability[] {
   return read<Availability[]>(KEYS.avail, []).map((a) => ({

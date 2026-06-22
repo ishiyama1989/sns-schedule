@@ -17,7 +17,9 @@ import {
   getAvailability,
   getEvents,
   getMembers,
+  getUnseenAssignedEvents,
   getUsers,
+  markAssignedEventsSeen,
   pendingPayConfirmationsForUser,
   pendingRequestsForUser,
   requestsOn,
@@ -81,6 +83,11 @@ export default function Calendar({
   );
   const pendingPay = useMemo(
     () => (me.role === "member" ? pendingPayConfirmationsForUser(me.id) : []),
+    [version, me]
+  );
+  // メンバー：自分に割り当てられた新しい予定（未確認）
+  const unseenEvents = useMemo(
+    () => (me.role === "member" ? getUnseenAssignedEvents(me.id) : []),
     [version, me]
   );
 
@@ -192,6 +199,29 @@ export default function Calendar({
                 確認する →
               </button>
             )}
+          </div>
+        )}
+        {unseenEvents.length > 0 && (
+          <div className="pending-banner event">
+            <span className="pending-banner-text">
+              新しい予定が <strong>{unseenEvents.length}件</strong> 登録されました
+              <span className="unseen-dates">
+                {[...new Set(unseenEvents.map((e) => e.date))]
+                  .sort()
+                  .slice(0, 4)
+                  .map((d) => d.slice(5).replace("-", "/"))
+                  .join("、")}
+              </span>
+            </span>
+            <button
+              className="primary"
+              onClick={() => {
+                markAssignedEventsSeen(me.id);
+                refresh();
+              }}
+            >
+              確認しました
+            </button>
           </div>
         )}
         <div className="cal-header">
