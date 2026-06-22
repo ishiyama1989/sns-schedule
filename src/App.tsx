@@ -7,12 +7,13 @@ import {
 import type { User } from "./types";
 import {
   currentUser,
+  getUsers,
   logout,
   pendingPayConfirmationsForUser,
   pendingRequestsForUser,
   pendingVideoTasksForUser,
   submittedVideoTasksCount,
-  seedIfEmpty,
+  seedOwner,
 } from "./store";
 import { hydrateFromSupabase } from "./lib/supabase";
 import Login from "./components/Login";
@@ -43,8 +44,14 @@ export default function App() {
 
   useEffect(() => {
     (async () => {
-      await hydrateFromSupabase();
-      seedIfEmpty();
+      const res = await hydrateFromSupabase();
+      // オーナー作成は「Supabaseに繋がって、かつ本当に空」のときだけ。
+      // オフライン初回起動でローカルも空なら一時的に作成（オンライン復帰で同期）。
+      if (res.ok && res.userCount === 0) {
+        seedOwner();
+      } else if (!res.ok && getUsers().length === 0) {
+        seedOwner();
+      }
       setUser(currentUser());
       setLoading(false);
     })();

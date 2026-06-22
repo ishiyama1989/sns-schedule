@@ -251,10 +251,12 @@ export function syncVideoTasks(tasks: VideoTask[]): void {
 
 // ---- Hydration: Supabase → localStorage on app start ----
 
-const SCHEMA_VERSION = '4'
+const SCHEMA_VERSION = '5'
 const SCHEMA_KEY = 'sns_schema_version'
 
-export async function hydrateFromSupabase(): Promise<boolean> {
+// Supabase を唯一の正とし、起動時に localStorage を上書きする。
+// 戻り値: ok=接続できたか, userCount=Supabase上のユーザー数
+export async function hydrateFromSupabase(): Promise<{ ok: boolean; userCount: number }> {
   try {
     const [users, events, avail, requests, payConf, recipients, templates, videoTasks] =
       await Promise.all([
@@ -279,11 +281,10 @@ export async function hydrateFromSupabase(): Promise<boolean> {
     if (templates.data) localStorage.setItem('sns_comment_templates', JSON.stringify(templates.data.map(fromDbTemplate)))
     if (videoTasks.data) localStorage.setItem('sns_video_tasks', JSON.stringify(videoTasks.data.map(fromDbVideoTask)))
 
-    // Set schema version so seedIfEmpty won't wipe the hydrated data
     localStorage.setItem(SCHEMA_KEY, SCHEMA_VERSION)
 
-    return true
+    return { ok: true, userCount: users.data?.length ?? 0 }
   } catch {
-    return false
+    return { ok: false, userCount: 0 }
   }
 }

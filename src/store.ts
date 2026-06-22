@@ -34,7 +34,10 @@ const KEYS = {
   version: "sns_schema_version",
 };
 
-const SCHEMA_VERSION = "4";
+const SCHEMA_VERSION = "5";
+
+// オーナーは固定IDにして、どの端末で初期化しても1行に収束させる（重複防止）
+const OWNER_ID = "owner-momoka";
 
 function read<T>(key: string, fallback: T): T {
   try {
@@ -53,35 +56,18 @@ export function uid(): string {
   return Math.random().toString(36).slice(2, 10);
 }
 
-// ---- 初回起動時にオーナーアカウントを用意 ----
-export function seedIfEmpty(): void {
-  if (read<string | null>(KEYS.version, null) !== SCHEMA_VERSION) {
-    [
-      KEYS.users,
-      KEYS.events,
-      KEYS.avail,
-      KEYS.templates,
-      KEYS.requests,
-      KEYS.payConf,
-      KEYS.recipients,
-      KEYS.session,
-    ].forEach((k) => localStorage.removeItem(k));
-    write(KEYS.version, SCHEMA_VERSION);
-  }
-
-  if (read<User[]>(KEYS.users, []).length > 0) return;
-
+// オーナーアカウントを作成（固定ID）。Supabaseが確実に空のときだけ App から呼ぶ。
+export function seedOwner(): void {
   const owner: User = {
-    id: uid(),
+    id: OWNER_ID,
     name: "Momoka",
     password: "0000",
     role: "owner",
     hourlyRate: 0,
   };
   write<User[]>(KEYS.users, [owner]);
+  write(KEYS.version, SCHEMA_VERSION);
   syncUsers([owner]);
-  write<ScheduleEvent[]>(KEYS.events, []);
-  write<Availability[]>(KEYS.avail, []);
 }
 
 // ---- ユーザー ----
