@@ -345,11 +345,11 @@ label input, label select, label textarea { margin-top: 6px; font-weight: 400; }
   border: 1px solid rgba(200,147,58,0.22);
   border-left: 3px solid var(--warning);
   border-radius: var(--radius);
-  padding: 12px 14px;
+  padding: 10px 14px;
   margin-bottom: 14px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 }
 .pending-requests-head {
   display: flex;
@@ -357,9 +357,48 @@ label input, label select, label textarea { margin-top: 6px; font-weight: 400; }
   justify-content: space-between;
   gap: 10px;
 }
-.banner-req-card {
+.banner-req-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
   background: #fff;
-  margin: 0;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+}
+.banner-req-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+.banner-req-main {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.banner-req-sub {
+  font-size: 11.5px;
+  color: var(--text-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.banner-req-btns {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.banner-req-btns .mini {
+  font-size: 12px;
+  padding: 6px 12px;
 }
 
 /* 報酬確認 */

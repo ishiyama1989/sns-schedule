@@ -200,22 +200,20 @@ export default function Calendar({
               )}
             </div>
             {pending.map((r) => (
-              <div key={r.id} className="req-card banner-req-card">
-                <div className="req-card-head">
-                  <span className="req-date">{r.date.replace(/-/g, "/")}</span>
-                  <span className="tag">{EVENT_TYPE_LABEL[r.type]}</span>
+              <div key={r.id} className="banner-req-row">
+                <div className="banner-req-info">
+                  <span className="banner-req-main">
+                    <span className="tag">{EVENT_TYPE_LABEL[r.type]}</span>
+                    {r.title}
+                  </span>
+                  <span className="banner-req-sub">
+                    {r.date.slice(5).replace("-", "/")} {r.start}–{r.end || "未定"}
+                    {r.location ? ` / ${r.location}` : ""}
+                  </span>
                 </div>
-                <div className="req-card-title">{r.title}</div>
-                <div className="req-card-meta">
-                  🕒 {r.start}–{r.end || "未定"} ／ 📍 {r.location || "未設定"}
-                </div>
-                <div className="req-card-meta">
-                  依頼者: {users.find((u) => u.id === r.fromUserId)?.name ?? "管理者"}
-                </div>
-                {r.note && <div className="req-card-note">{r.note}</div>}
-                <div className="req-card-actions">
+                <div className="banner-req-btns">
                   <button
-                    className="ghost danger"
+                    className="ghost danger mini"
                     onClick={() => {
                       rejectRequest(r.id);
                       refresh();
@@ -224,13 +222,13 @@ export default function Calendar({
                     却下
                   </button>
                   <button
-                    className="primary"
+                    className="primary mini"
                     onClick={() => {
                       approveRequest(r.id);
                       refresh();
                     }}
                   >
-                    承認する
+                    承認
                   </button>
                 </div>
               </div>
