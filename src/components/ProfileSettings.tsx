@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type {
   StampFont,
   StampOrientation,
@@ -7,6 +7,7 @@ import type {
 } from "../types";
 import { changePassword, updateUserProfile } from "../store";
 import { STAMP_FONTS, stampSvg } from "../lib/stamp";
+import { disablePush, enablePush, isPushEnabled, pushSupported } from "../lib/push";
 
 // メンバーが自分のプロフィール（住所等）とデジタル印影を設定する画面
 export default function ProfileSettings({
@@ -40,6 +41,33 @@ export default function ProfileSettings({
   const [pwNext, setPwNext] = useState("");
   const [pwNext2, setPwNext2] = useState("");
   const [pwMsg, setPwMsg] = useState<{ ok: boolean; text: string } | null>(null);
+
+  const [pushOn, setPushOn] = useState(false);
+  const [pushBusy, setPushBusy] = useState(false);
+  const [pushMsg, setPushMsg] = useState<string | null>(null);
+
+  useEffect(() => {
+    isPushEnabled().then(setPushOn);
+  }, []);
+
+  async function togglePush() {
+    setPushBusy(true);
+    setPushMsg(null);
+    if (pushOn) {
+      await disablePush();
+      setPushOn(false);
+      setPushMsg("通知をオフにしました");
+    } else {
+      const r = await enablePush(me.id);
+      if (r.ok) {
+        setPushOn(true);
+        setPushMsg("この端末で通知を受け取れるようになりました");
+      } else {
+        setPushMsg(r.error);
+      }
+    }
+    setPushBusy(false);
+  }
 
   function savePw() {
     if (pwNext !== pwNext2) {
@@ -84,6 +112,38 @@ export default function ProfileSettings({
         <p className="muted">
           ここで登録した情報は、領収書の発行時に自動で反映されます。
         </p>
+      </div>
+
+      <div className="settings-card">
+        <h3>プッシュ通知</h3>
+        <p className="muted small" style={{ marginTop: 0 }}>
+          予定や依頼が登録されたとき、この端末に通知が届きます。
+        </p>
+        {pushSupported() ? (
+          <>
+            <label className="check-line">
+              <input
+                type="checkbox"
+                checked={pushOn}
+                disabled={pushBusy}
+                onChange={togglePush}
+              />
+              この端末で通知を受け取る
+            </label>
+            {pushMsg && (
+              <p className="muted small" style={{ color: pushOn ? "var(--success)" : undefined }}>
+                {pushMsg}
+              </p>
+            )}
+            <p className="muted small">
+              ※ iPhoneはホーム画面に追加したアプリから開いた場合のみ通知が使えます
+            </p>
+          </>
+        ) : (
+          <p className="muted small">
+            この端末・ブラウザは通知に対応していません。iPhoneの場合はホーム画面に追加してから開いてください。
+          </p>
+        )}
       </div>
 
       {me.role !== "owner" && (

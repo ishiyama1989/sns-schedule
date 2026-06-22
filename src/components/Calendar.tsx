@@ -27,7 +27,15 @@ import {
   uid,
 } from "../store";
 import { WEEKDAYS, monthGrid, todayStr, ymd } from "../lib/date";
+import { sendPushToUsers } from "../lib/push";
 import MapLinks from "./MapLinks";
+
+const TYPE_JP: Record<string, string> = {
+  shooting: "撮影",
+  meeting: "会議",
+  delivery: "納品",
+  other: "予定",
+};
 
 // 時間プルダウン用スロット（30分刻み）
 const TIME_SLOTS: string[] = [];
@@ -613,6 +621,12 @@ function EventRequestForm({
         note: event.note,
       });
     }
+    sendPushToUsers(
+      selected,
+      "新しい依頼が届きました",
+      `${event.date.slice(5).replace("-", "/")} ${event.start}〜${event.end || "未定"}　${TYPE_JP[event.type] ?? ""}「${event.title}」`,
+      "/"
+    );
     onSent();
   }
 
@@ -684,20 +698,29 @@ function EventForm({
     if (!draft.title.trim()) return alert("内容を入力してください");
     const saved = { ...draft, title: draft.title.trim() };
     onSave(saved);
-    if (alsoRequest && me.role === "owner" && draft.assigneeIds.length > 0) {
-      for (const toUserId of draft.assigneeIds) {
-        addRequest({
-          date: saved.date,
-          fromUserId: me.id,
-          toUserId,
-          type: saved.type,
-          title: saved.title,
-          location: saved.location,
-          start: saved.start,
-          end: saved.end,
-          note: saved.note,
-        });
+    if (me.role === "owner" && draft.assigneeIds.length > 0) {
+      if (alsoRequest) {
+        for (const toUserId of draft.assigneeIds) {
+          addRequest({
+            date: saved.date,
+            fromUserId: me.id,
+            toUserId,
+            type: saved.type,
+            title: saved.title,
+            location: saved.location,
+            start: saved.start,
+            end: saved.end,
+            note: saved.note,
+          });
+        }
       }
+      // 担当者にプッシュ通知
+      sendPushToUsers(
+        draft.assigneeIds,
+        alsoRequest ? "新しい依頼が届きました" : "新しい予定が登録されました",
+        `${saved.date.slice(5).replace("-", "/")} ${saved.start}〜${saved.end || "未定"}　${TYPE_JP[saved.type] ?? ""}「${saved.title}」`,
+        "/"
+      );
     }
   }
 
@@ -827,6 +850,12 @@ function RequestForm({
       end,
       note,
     });
+    sendPushToUsers(
+      [toUser.id],
+      "新しい依頼が届きました",
+      `${date.slice(5).replace("-", "/")} ${start}〜${end || "未定"}　${TYPE_JP[type] ?? ""}「${title.trim()}」`,
+      "/"
+    );
     onSent();
   }
 
