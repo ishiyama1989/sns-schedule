@@ -27,6 +27,13 @@ import {
 import { WEEKDAYS, monthGrid, todayStr, ymd } from "../lib/date";
 import MapLinks from "./MapLinks";
 
+// 終了時間プルダウン用スロット（30分刻み）
+const END_TIME_SLOTS: string[] = [];
+for (let h = 0; h < 24; h++) {
+  END_TIME_SLOTS.push(`${String(h).padStart(2, "0")}:00`);
+  END_TIME_SLOTS.push(`${String(h).padStart(2, "0")}:30`);
+}
+
 export default function Calendar({
   me,
   onOpenRequests,
@@ -40,8 +47,7 @@ export default function Calendar({
   const [year, setYear] = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth());
   const [selected, setSelected] = useState<string | null>(null);
-  const [version, setVersion] = useState(0); // 再描画トリガ
-  // ドラッグ&ドロップ（管理者のみ予定を移動できる）
+  const [version, setVersion] = useState(0);
   const draggingId = useRef<string | null>(null);
   const [dragOverDate, setDragOverDate] = useState<string | null>(null);
 
@@ -50,7 +56,6 @@ export default function Calendar({
   const users = useMemo(() => getUsers(), [version]);
   const grid = useMemo(() => monthGrid(year, month), [year, month]);
 
-  // 稼働日検索（管理者のみ）
   const [searchSelected, setSearchSelected] = useState<string[]>([]);
   const allMembers = useMemo(() => (isOwner ? getMembers() : []), [isOwner, version]);
   const availByDateIds = useMemo(() => {
@@ -70,12 +75,10 @@ export default function Calendar({
     );
   }, [availByDateIds, searchSelected]);
 
-  // メンバー：承認待ちの依頼（トップ画面で目立たせる）
   const pending = useMemo(
     () => (me.role === "member" ? pendingRequestsForUser(me.id) : []),
     [version, me]
   );
-  // メンバー：報酬の確認依頼
   const pendingPay = useMemo(
     () => (me.role === "member" ? pendingPayConfirmationsForUser(me.id) : []),
     [version, me]
@@ -87,7 +90,6 @@ export default function Calendar({
     return map;
   }, [events]);
 
-  // 日付ごとの「空きを設定したメンバー情報（名前＋時間帯）」（オーナー用）
   const availNamesByDate = useMemo(() => {
     const nameById: Record<string, string> = {};
     for (const u of users) if (u.role === "member") nameById[u.id] = u.name;
@@ -291,7 +293,6 @@ export default function Calendar({
                         ev.stopPropagation();
                         draggingId.current = e.id;
                         ev.dataTransfer.effectAllowed = "move";
-                        // ゴースト画像をチップ自体に（デフォルトで自動）
                       } : undefined}
                       onDragEnd={isOwner ? () => {
                         draggingId.current = null;
@@ -356,7 +357,7 @@ function DayPanel({
       location: "",
       assigneeIds: [],
       start: "10:00",
-      end: "12:00",
+      end: "",
       note: "",
     };
   }
@@ -452,7 +453,7 @@ function DayPanel({
               </div>
               <div className="event-meta">
                 <ClockIcon size={11} strokeWidth={2} style={{verticalAlign:"middle",marginRight:3}} />
-                {e.start}–{e.end}
+                {e.start}–{e.end || "未定"}
                 <span style={{margin:"0 4px",opacity:.4}}>·</span>
                 <MapPin size={11} strokeWidth={2} style={{verticalAlign:"middle",marginRight:3}} />
                 {e.location || "場所未設定"}
@@ -502,6 +503,7 @@ function DayPanel({
         <EventForm
           value={editing}
           users={users}
+          me={me}
           onCancel={() => setEditing(null)}
           onSave={(ev) => {
             upsertEvent(ev);
@@ -527,11 +529,13 @@ function DayPanel({
 function EventForm({
   value,
   users,
+  me,
   onCancel,
   onSave,
 }: {
   value: ScheduleEvent;
   users: User[];
+  me: User;
   onCancel: () => void;
   onSave: (e: ScheduleEvent) => void;
 }) {
@@ -549,6 +553,29 @@ function EventForm({
         : [...d.assigneeIds, id],
     }));
   }
+
+  function handleSave(alsoRequest: boolean) {
+    if (!draft.title.trim()) return alert("内容を入力してください");
+    const saved = { ...draft, title: draft.title.trim() };
+    onSave(saved);
+    if (alsoRequest && me.role === "owner" && draft.assigneeIds.length > 0) {
+      for (const toUserId of draft.assigneeIds) {
+        addRequest({
+          date: saved.date,
+          fromUserId: me.id,
+          toUserId,
+          type: saved.type,
+          title: saved.title,
+          location: saved.location,
+          start: saved.start,
+          end: saved.end,
+          note: saved.note,
+        });
+      }
+    }
+  }
+
+  const canRequest = me.role === "owner" && draft.assigneeIds.length > 0;
 
   return (
     <div className="event-form">
@@ -590,7 +617,12 @@ function EventForm({
         </label>
         <label>
           終了
-          <input type="time" value={draft.end} onChange={(e) => set("end", e.target.value)} />
+          <select value={draft.end} onChange={(e) => set("end", e.target.value)}>
+            <option value="">未定</option>
+            {END_TIME_SLOTS.map((t) => (
+              <option key={t} value={t}>{t}</option>
+            ))}
+          </select>
         </label>
       </div>
       <label>
@@ -617,16 +649,20 @@ function EventForm({
         <button className="ghost" onClick={onCancel}>
           キャンセル
         </button>
-        <button
-          className="primary"
-          onClick={() => {
-            if (!draft.title.trim()) return alert("内容を入力してください");
-            onSave({ ...draft, title: draft.title.trim() });
-          }}
-        >
+        <button className="primary" onClick={() => handleSave(false)}>
           保存
         </button>
+        {canRequest && (
+          <button className="primary" onClick={() => handleSave(true)}>
+            保存して依頼する
+          </button>
+        )}
       </div>
+      {canRequest && (
+        <p className="muted small" style={{ marginTop: 6 }}>
+          「保存して依頼する」で担当者全員に依頼を送信します
+        </p>
+      )}
     </div>
   );
 }
@@ -649,7 +685,7 @@ function RequestForm({
   const [title, setTitle] = useState("");
   const [location, setLocation] = useState("");
   const [start, setStart] = useState("10:00");
-  const [end, setEnd] = useState("12:00");
+  const [end, setEnd] = useState("");
   const [note, setNote] = useState("");
 
   function send() {
@@ -708,7 +744,12 @@ function RequestForm({
         </label>
         <label>
           終了
-          <input type="time" value={end} onChange={(e) => setEnd(e.target.value)} />
+          <select value={end} onChange={(e) => setEnd(e.target.value)}>
+            <option value="">未定</option>
+            {END_TIME_SLOTS.map((t) => (
+              <option key={t} value={t}>{t}</option>
+            ))}
+          </select>
         </label>
       </div>
       <label>
