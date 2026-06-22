@@ -86,56 +86,58 @@ export default function ProfileSettings({
         </p>
       </div>
 
-      <div className="settings-card">
-        <h3>プロフィール（領収書の発行者欄に表示）</h3>
-        <label>
-          郵便番号
-          <input
-            value={postalCode}
-            onChange={(e) => {
-              setPostalCode(e.target.value);
-              setSaved(false);
-            }}
-            placeholder="123-4567"
-          />
-        </label>
-        <label>
-          住所
-          <input
-            value={address}
-            onChange={(e) => {
-              setAddress(e.target.value);
-              setSaved(false);
-            }}
-            placeholder="東京都渋谷区○○ 1-2-3"
-          />
-        </label>
-        <div className="row">
+      {me.role !== "owner" && (
+        <div className="settings-card">
+          <h3>プロフィール（領収書の発行者欄に表示）</h3>
           <label>
-            電話番号
+            郵便番号
             <input
-              value={phone}
+              value={postalCode}
               onChange={(e) => {
-                setPhone(e.target.value);
+                setPostalCode(e.target.value);
                 setSaved(false);
               }}
-              placeholder="090-1234-5678"
+              placeholder="123-4567"
             />
           </label>
           <label>
-            メールアドレス
+            住所
             <input
-              type="email"
-              value={email}
+              value={address}
               onChange={(e) => {
-                setEmail(e.target.value);
+                setAddress(e.target.value);
                 setSaved(false);
               }}
-              placeholder="you@example.com"
+              placeholder="東京都渋谷区○○ 1-2-3"
             />
           </label>
+          <div className="row">
+            <label>
+              電話番号
+              <input
+                value={phone}
+                onChange={(e) => {
+                  setPhone(e.target.value);
+                  setSaved(false);
+                }}
+                placeholder="090-1234-5678"
+              />
+            </label>
+            <label>
+              メールアドレス
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  setSaved(false);
+                }}
+                placeholder="you@example.com"
+              />
+            </label>
+          </div>
         </div>
-      </div>
+      )}
 
       {me.role !== "owner" && (
         <div className="settings-card">
