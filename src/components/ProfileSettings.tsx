@@ -69,12 +69,12 @@ export default function ProfileSettings({
     setPushBusy(false);
   }
 
-  function savePw() {
+  async function savePw() {
     if (pwNext !== pwNext2) {
       setPwMsg({ ok: false, text: "新しいパスワードが一致しません" });
       return;
     }
-    const result = changePassword(me.id, pwCurrent, pwNext);
+    const result = await changePassword(me.id, pwCurrent, pwNext);
     if (result.ok) {
       setPwMsg({ ok: true, text: "パスワードを変更しました" });
       setPwCurrent(""); setPwNext(""); setPwNext2("");
@@ -310,23 +310,10 @@ export default function ProfileSettings({
       <div className="settings-card">
         <h3>パスワード変更</h3>
         <label>
-          現在のパスワード
+          新しいパスワード（6文字以上）
           <input
             type="password"
-            inputMode="numeric"
-            maxLength={4}
-            placeholder="現在の4桁パスワード"
-            value={pwCurrent}
-            onChange={(e) => { setPwCurrent(e.target.value); setPwMsg(null); }}
-          />
-        </label>
-        <label>
-          新しいパスワード（4桁の数字）
-          <input
-            type="password"
-            inputMode="numeric"
-            maxLength={4}
-            placeholder="新しい4桁パスワード"
+            placeholder="新しいパスワード"
             value={pwNext}
             onChange={(e) => { setPwNext(e.target.value); setPwMsg(null); }}
           />
@@ -335,8 +322,6 @@ export default function ProfileSettings({
           新しいパスワード（確認）
           <input
             type="password"
-            inputMode="numeric"
-            maxLength={4}
             placeholder="もう一度入力"
             value={pwNext2}
             onChange={(e) => { setPwNext2(e.target.value); setPwMsg(null); }}

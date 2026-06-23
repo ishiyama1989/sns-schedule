@@ -1,48 +1,81 @@
 import { useEffect, useState } from "react";
 import "./App.css";
+import type { User } from "./types";
 import {
-  getCurrentEmail,
   getMyOrg,
   getMyProfile,
   signOut,
   type Org,
   type Profile,
 } from "./lib/auth";
-import { supabase } from "./lib/supabase";
+import { loadOrgData, setOrgId, supabase } from "./lib/supabase";
 import Auth from "./components/Auth";
 import CreateOrg from "./components/CreateOrg";
+import App from "./App";
 
 type Stage = "loading" | "anon" | "needOrg" | "ready";
 
-// SaaS版の入口。認証→組織作成→（今後）本体アプリ、をゲートする。
+function toUser(p: Profile): User {
+  return {
+    id: p.id,
+    name: p.name,
+    password: "",
+    role: p.role,
+    hourlyRate: p.hourlyRate,
+    postalCode: p.postalCode,
+    address: p.address,
+    phone: p.phone,
+    email: p.email,
+    stamp: p.stamp,
+  };
+}
+
+// SaaS版の入口。認証 → 組織作成 → データ読み込み → 本体アプリ。
 export default function AppShell() {
   const [stage, setStage] = useState<Stage>("loading");
-  const [profile, setProfile] = useState<Profile | null>(null);
+  const [me, setMe] = useState<User | null>(null);
   const [org, setOrg] = useState<Org | null>(null);
-  const [email, setEmail] = useState<string | null>(null);
 
   async function refresh() {
+    setStage("loading");
     const { data } = await supabase.auth.getSession();
     if (!data.session) {
+      setOrgId(null);
       setStage("anon");
       return;
     }
-    setEmail(await getCurrentEmail());
-    const p = await getMyProfile();
-    if (!p) {
+    const profile = await getMyProfile();
+    if (!profile) {
       setStage("needOrg");
       return;
     }
-    setProfile(p);
-    setOrg(await getMyOrg());
+    const o = await getMyOrg();
+    setOrgId(profile.orgId);
+    localStorage.setItem("sns_session", profile.id); // store.currentUser() 用
+    await loadOrgData();
+    setMe(toUser(profile));
+    setOrg(o);
     setStage("ready");
   }
 
   useEffect(() => {
     refresh();
-    const { data: sub } = supabase.auth.onAuthStateChange(() => refresh());
+    const { data: sub } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "SIGNED_OUT") {
+        setOrgId(null);
+        setStage("anon");
+      }
+    });
     return () => sub.subscription.unsubscribe();
   }, []);
+
+  async function handleLogout() {
+    await signOut();
+    setOrgId(null);
+    setMe(null);
+    setOrg(null);
+    setStage("anon");
+  }
 
   if (stage === "loading")
     return (
@@ -54,43 +87,6 @@ export default function AppShell() {
   if (stage === "anon") return <Auth onLoggedIn={refresh} />;
   if (stage === "needOrg") return <CreateOrg onCreated={refresh} />;
 
-  // 認証＋組織OK。ここに本体アプリ（カレンダー等）を順次組み込む。
-  return (
-    <div className="app">
-      <header className="topbar">
-        <div className="topbar-left">
-          <span className="logo"><span className="logo-dot" />SNS Schedule</span>
-        </div>
-        <div className="topbar-right">
-          <span className="user-badge">
-            {org?.name} ／ {profile?.name}
-            <span className={`role ${profile?.role}`}>
-              {profile?.role === "owner" ? "管理者" : "メンバー"}
-            </span>
-          </span>
-          <button
-            className="ghost"
-            onClick={async () => {
-              await signOut();
-              refresh();
-            }}
-          >
-            ログアウト
-          </button>
-        </div>
-      </header>
-      <main className="content">
-        <div className="section-head">
-          <h2>セットアップ完了 🎉</h2>
-          <p className="muted">
-            ログイン・会社作成・データ分離（RLS）の土台ができました。<br />
-            ログイン中：{email}<br />
-            会社：{org?.name}（あなたは{profile?.role === "owner" ? "管理者" : "メンバー"}）<br />
-            <br />
-            次のステップで、カレンダー・報酬・案件などの機能をこの中に組み込んでいきます。
-          </p>
-        </div>
-      </main>
-    </div>
-  );
+  // 認証＋組織＋データ読み込みOK。本体アプリを表示。
+  return <App me={me!} orgName={org?.name ?? ""} onLogout={handleLogout} />;
 }

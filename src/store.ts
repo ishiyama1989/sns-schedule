@@ -11,7 +11,9 @@ import type {
 } from "./types";
 import type { EventApproval, Project, ProjectMaterial } from "./types";
 import {
+  supabase,
   syncUsers,
+  syncProfiles,
   syncEvents,
   syncAvailability,
   syncRequests,
@@ -84,7 +86,7 @@ export function getUsers(): User[] {
 
 export function saveUsers(users: User[]): void {
   write(KEYS.users, users);
-  syncUsers(users);
+  syncProfiles(users); // SaaS版：profiles テーブルを更新
 }
 
 export function getMembers(): User[] {
@@ -169,17 +171,17 @@ export function currentUser(): User | null {
   return getUsers().find((u) => u.id === id) ?? null;
 }
 
-export function changePassword(
-  userId: string,
-  current: string,
+// SaaS版：パスワード変更は Supabase Auth で行う（6文字以上）
+export async function changePassword(
+  _userId: string,
+  _current: string,
   next: string
-): { ok: true } | { ok: false; error: string } {
-  const users = getUsers();
-  const user = users.find((u) => u.id === userId);
-  if (!user) return { ok: false, error: "ユーザーが見つかりません" };
-  if (user.password !== current) return { ok: false, error: "現在のパスワードが違います" };
-  if (!/^\d{4}$/.test(next)) return { ok: false, error: "新しいパスワードは4桁の数字にしてください" };
-  saveUsers(users.map((u) => (u.id === userId ? { ...u, password: next } : u)));
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  if (next.length < 6) {
+    return { ok: false, error: "新しいパスワードは6文字以上にしてください" };
+  }
+  const { error } = await supabase.auth.updateUser({ password: next });
+  if (error) return { ok: false, error: error.message };
   return { ok: true };
 }
 

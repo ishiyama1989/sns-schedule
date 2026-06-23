@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import "./App.css";
 import {
   Calendar as CalendarIcon, Clock, Inbox, Banknote, Settings,
@@ -6,18 +6,12 @@ import {
 } from "lucide-react";
 import type { User } from "./types";
 import {
-  currentUser,
-  getUsers,
-  logout,
   countAwaitingAdmin,
   pendingEventApprovalsForUser,
   pendingRequestsForUser,
   pendingVideoTasksForUser,
   submittedVideoTasksCount,
-  seedOwner,
 } from "./store";
-import { hydrateFromSupabase } from "./lib/supabase";
-import Login from "./components/Login";
 import Calendar from "./components/Calendar";
 import AvailabilityView from "./components/Availability";
 import OwnerMembers from "./components/OwnerMembers";
@@ -42,55 +36,17 @@ type Tab =
   | "projects"
   | "history";
 
-export default function App() {
-  const [user, setUser] = useState<User | null>(null);
+export default function App({
+  me,
+  orgName,
+  onLogout,
+}: {
+  me: User;
+  orgName: string;
+  onLogout: () => void;
+}) {
+  const [user, setUser] = useState<User>(me);
   const [tab, setTab] = useState<Tab>("calendar");
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    (async () => {
-      const res = await hydrateFromSupabase();
-      // オーナー作成は「Supabaseに繋がって、かつ本当に空」のときだけ。
-      // オフライン初回起動でローカルも空なら一時的に作成（オンライン復帰で同期）。
-      if (res.ok && res.userCount === 0) {
-        seedOwner();
-      } else if (!res.ok && getUsers().length === 0) {
-        seedOwner();
-      }
-      setUser(currentUser());
-      setLoading(false);
-    })();
-  }, []);
-
-  // アプリがバックグラウンドから復帰したときにSupabaseから最新データを再取得
-  useEffect(() => {
-    const onVisible = async () => {
-      if (document.visibilityState === "visible") {
-        await hydrateFromSupabase();
-        setUser(currentUser());
-      }
-    };
-    document.addEventListener("visibilitychange", onVisible);
-    return () => document.removeEventListener("visibilitychange", onVisible);
-  }, []);
-
-  if (loading)
-    return (
-      <div className="loading-screen">
-        <div className="loading-spinner" />
-        <p>読み込み中...</p>
-      </div>
-    );
-
-  if (!user)
-    return (
-      <Login
-        onAuth={(u) => {
-          setUser(u);
-          setTab("calendar");
-        }}
-      />
-    );
 
   const isOwner = user.role === "owner";
   const pendingReqCount = isOwner ? 0 : pendingRequestsForUser(user.id).length;
@@ -137,20 +93,14 @@ export default function App() {
     <div className="app">
       <header className="topbar">
         <div className="topbar-left">
-          <span className="logo"><span className="logo-dot" />SNS Schedule</span>
+          <span className="logo"><span className="logo-dot" />{orgName || "SNS Schedule"}</span>
         </div>
         <div className="topbar-right">
           <span className="user-badge">
             {user.name}
             <span className={`role ${user.role}`}>{isOwner ? "管理者" : "メンバー"}</span>
           </span>
-          <button
-            className="ghost"
-            onClick={() => {
-              logout();
-              setUser(null);
-            }}
-          >
+          <button className="ghost" onClick={onLogout}>
             <LogOut size={13} strokeWidth={2} />
             <span className="logout-text">ログアウト</span>
           </button>

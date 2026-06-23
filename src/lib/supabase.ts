@@ -286,6 +286,52 @@ const fromDbMaterial = (r: any): ProjectMaterial => ({
   createdAt: r.created_at ?? '',
 })
 
+// プロフィール（= アプリの User）。SaaS版では users テーブルの代わりに profiles を使う。
+const toDbProfile = (u: User) => ({
+  id: u.id,
+  name: u.name,
+  role: u.role,
+  hourly_rate: u.hourlyRate,
+  postal_code: u.postalCode ?? null,
+  address: u.address ?? null,
+  phone: u.phone ?? null,
+  email: u.email ?? null,
+  stamp_text: u.stamp?.text ?? null,
+  stamp_shape: u.stamp?.shape ?? null,
+  stamp_orientation: u.stamp?.orientation ?? null,
+  stamp_font: u.stamp?.font ?? null,
+})
+
+const fromDbProfile = (r: any): User => ({
+  id: r.id,
+  name: r.name,
+  password: "", // SaaS版は Supabase Auth が管理（未使用）
+  role: r.role,
+  hourlyRate: r.hourly_rate ?? 0,
+  postalCode: r.postal_code ?? undefined,
+  address: r.address ?? undefined,
+  phone: r.phone ?? undefined,
+  email: r.email ?? undefined,
+  stamp: r.stamp_text
+    ? {
+        text: r.stamp_text,
+        shape: r.stamp_shape ?? "circle",
+        orientation: r.stamp_orientation ?? "vertical",
+        font: r.stamp_font ?? "mincho",
+      }
+    : undefined,
+})
+
+// プロフィール更新（自分 or 同組織のメンバー）。upsertではなくupdateでRLSを通す。
+export function syncProfiles(users: User[]): void {
+  for (const u of users) {
+    supabase.from("profiles").update(toDbProfile(u)).eq("id", u.id).then(
+      () => {},
+      () => {}
+    );
+  }
+}
+
 // ---- Sync helper: 行ごとに upsert（全削除はしない＝データ消失を防ぐ） ----
 // すべての行に現在の org_id を自動付与（マルチテナント分離）。
 async function upsertRows<T>(
@@ -365,7 +411,41 @@ export async function uploadMaterialFile(
   return { url: data.publicUrl, path };
 }
 
-// ---- Hydration: Supabase → localStorage on app start ----
+// ---- SaaS版：ログイン中の組織のデータを読み込む（RLSで自組織のみ） ----
+export async function loadOrgData(): Promise<void> {
+  const [
+    profiles, events, avail, requests, pay, recipients,
+    templates, videoTasks, approvals, projects, materials,
+  ] = await Promise.all([
+    supabase.from('profiles').select('*'),
+    supabase.from('schedule_events').select('*'),
+    supabase.from('availability').select('*'),
+    supabase.from('app_requests').select('*'),
+    supabase.from('pay_confirmations').select('*'),
+    supabase.from('recipients').select('*'),
+    supabase.from('comment_templates').select('*'),
+    supabase.from('video_tasks').select('*'),
+    supabase.from('event_approvals').select('*'),
+    supabase.from('projects').select('*'),
+    supabase.from('project_materials').select('*'),
+  ])
+  const put = (key: string, rows: any[] | null | undefined, map: (r: any) => unknown) => {
+    if (rows) localStorage.setItem(key, JSON.stringify(rows.map(map)))
+  }
+  put('sns_users', profiles.data, fromDbProfile)
+  put('sns_events', events.data, fromDbEvent)
+  put('sns_availability', avail.data, fromDbAvail)
+  put('sns_requests', requests.data, fromDbRequest)
+  put('sns_pay_confirmations', pay.data, fromDbPayConf)
+  put('sns_recipients', recipients.data, fromDbRecipient)
+  put('sns_comment_templates', templates.data, fromDbTemplate)
+  put('sns_video_tasks', videoTasks.data, fromDbVideoTask)
+  put('sns_event_approvals', approvals.data, fromDbEventApproval)
+  put('sns_projects', projects.data, fromDbProject)
+  put('sns_project_materials', materials.data, fromDbMaterial)
+}
+
+// ---- Hydration: Supabase → localStorage on app start（旧・単一テナント用。SaaS版では未使用） ----
 
 const SCHEMA_VERSION = '5'
 const SCHEMA_KEY = 'sns_schema_version'
