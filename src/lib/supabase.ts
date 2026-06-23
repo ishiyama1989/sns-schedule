@@ -18,6 +18,12 @@ export const supabase = createClient(
   import.meta.env.VITE_SUPABASE_ANON_KEY as string,
 )
 
+// ---- 現在の組織コンテキスト（ログイン後に AppShell がセット） ----
+let CURRENT_ORG_ID: string | null = null;
+export function setOrgId(id: string | null): void {
+  CURRENT_ORG_ID = id;
+}
+
 // ---- App ↔ DB transformers ----
 
 const toDbUser = (u: User) => ({
@@ -281,6 +287,7 @@ const fromDbMaterial = (r: any): ProjectMaterial => ({
 })
 
 // ---- Sync helper: 行ごとに upsert（全削除はしない＝データ消失を防ぐ） ----
+// すべての行に現在の org_id を自動付与（マルチテナント分離）。
 async function upsertRows<T>(
   table: string,
   items: T[],
@@ -288,7 +295,8 @@ async function upsertRows<T>(
   onConflict: string,
 ): Promise<void> {
   if (items.length === 0) return
-  await supabase.from(table).upsert(items.map(toDb), { onConflict })
+  const rows = items.map((i) => ({ ...toDb(i), org_id: CURRENT_ORG_ID }))
+  await supabase.from(table).upsert(rows, { onConflict })
 }
 
 // 特定の行だけを削除（削除操作はこちらで明示的に行う）
