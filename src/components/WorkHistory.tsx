@@ -125,7 +125,7 @@ export default function WorkHistory({ me }: { me: User }) {
               <tr key={r.id}>
                 <td>{r.date.replace(/-/g, "/")}</td>
                 <td>{r.title}</td>
-                <td className="muted">{r.typeLabel}</td>
+                <td className="muted hist-type">{r.typeLabel}</td>
                 <td className="muted">{r.location}</td>
                 <td>{r.hours > 0 ? `${r.hours.toFixed(1)}h` : "—"}</td>
                 <td className="amount">{r.amount != null ? yen(r.amount) : "—"}</td>
