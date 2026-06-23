@@ -36,23 +36,37 @@ export default function Payments() {
 
   // 確認待ち（まだ承認依頼を送っていない過ぎた予定）
   const awaiting = useMemo(() => eventsAwaitingAdmin(), [version]);
-  // 承認依頼を送った金額の編集用
+  // 承認依頼を送る前の「時間」と「金額」の編集用
+  const [hoursMap, setHoursMap] = useState<Record<string, string>>({});
   const [amounts, setAmounts] = useState<Record<string, string>>({});
 
   function amountKey(eventId: string, userId: string) {
     return `${eventId}:${userId}`;
   }
+  function defaultHours(e: ScheduleEvent) {
+    return hoursBetween(e.start, e.end);
+  }
   function defaultAmount(e: ScheduleEvent, userId: string) {
-    const h = hoursBetween(e.start, e.end);
     const rate = memberById[userId]?.hourlyRate ?? 0;
-    return Math.round(h * rate);
+    return Math.round(defaultHours(e) * rate);
+  }
+  // 時間を変更したら、金額を「時間×時給」で自動再計算（金額は手動編集も可）
+  function onHoursChange(e: ScheduleEvent, userId: string, val: string) {
+    const key = amountKey(e.id, userId);
+    setHoursMap((m) => ({ ...m, [key]: val }));
+    const rate = memberById[userId]?.hourlyRate ?? 0;
+    const h = Number(val);
+    if (!Number.isNaN(h)) {
+      setAmounts((m) => ({ ...m, [key]: String(Math.round(h * rate)) }));
+    }
   }
 
   function send(e: ScheduleEvent, userId: string) {
     const key = amountKey(e.id, userId);
+    const hours =
+      hoursMap[key] !== undefined ? Number(hoursMap[key]) || 0 : defaultHours(e);
     const amount =
       amounts[key] !== undefined ? Number(amounts[key]) || 0 : defaultAmount(e, userId);
-    const hours = hoursBetween(e.start, e.end);
     requestEventApproval(e.id, userId, hours, amount);
     sendPushToUsers(
       [userId],
@@ -104,8 +118,9 @@ export default function Payments() {
         <div className="approval-list">
           {awaiting.map(({ event: e, userId }) => {
             const key = amountKey(e.id, userId);
-            const hours = hoursBetween(e.start, e.end);
-            const val =
+            const hoursVal =
+              hoursMap[key] !== undefined ? hoursMap[key] : String(defaultHours(e));
+            const amountVal =
               amounts[key] !== undefined ? amounts[key] : String(defaultAmount(e, userId));
             return (
               <div key={key} className="approval-card">
@@ -117,18 +132,31 @@ export default function Payments() {
                   </div>
                   <div className="approval-card-title">{e.title}</div>
                   <div className="approval-card-meta">
-                    🕒 {e.start}–{e.end || "未定"}（{hours.toFixed(1)}h） ／ 📍 {e.location || "未設定"}
+                    🕒 {e.start}–{e.end || "未定"} ／ 📍 {e.location || "未設定"}
+                  </div>
+                  <div className="approval-card-meta muted">
+                    時給 {yen(memberById[userId]?.hourlyRate ?? 0)}/時
                   </div>
                   {e.note && <div className="approval-card-note">{e.note}</div>}
                 </div>
                 <div className="approval-card-action">
+                  <label className="approval-amount-label">
+                    稼働時間（h）
+                    <input
+                      type="number"
+                      min={0}
+                      step={0.5}
+                      value={hoursVal}
+                      onChange={(ev) => onHoursChange(e, userId, ev.target.value)}
+                    />
+                  </label>
                   <label className="approval-amount-label">
                     報酬額（円）
                     <input
                       type="number"
                       min={0}
                       step={500}
-                      value={val}
+                      value={amountVal}
                       onChange={(ev) =>
                         setAmounts((m) => ({ ...m, [key]: ev.target.value }))
                       }
