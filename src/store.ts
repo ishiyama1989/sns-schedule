@@ -668,6 +668,7 @@ export function eventsAwaitingAdmin(): AwaitingApprovalItem[] {
   const items: AwaitingApprovalItem[] = [];
   for (const e of getEvents()) {
     if (e.type === "delivery") continue;
+    if (e.hasReward === false) continue; // 報酬なしの予定は対象外
     if (e.date >= t) continue; // 過ぎた予定のみ
     for (const userId of e.assigneeIds) {
       const has = approvals.some(

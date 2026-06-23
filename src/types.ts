@@ -40,6 +40,7 @@ export interface ScheduleEvent {
   start: string; // "HH:MM"
   end: string; // "HH:MM"
   note: string;
+  hasReward?: boolean; // 報酬の対象か（既定: true）。falseなら報酬承認の対象外
 }
 
 // オーナーからメンバーへの依頼（申請）。メンバーが承認すると予定になる

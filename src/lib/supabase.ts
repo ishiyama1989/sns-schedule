@@ -66,6 +66,7 @@ const toDbEvent = (e: ScheduleEvent) => ({
   start_time: e.start,
   end_time: e.end,
   note: e.note,
+  has_reward: e.hasReward !== false,
 })
 
 const fromDbEvent = (r: any): ScheduleEvent => ({
@@ -78,6 +79,7 @@ const fromDbEvent = (r: any): ScheduleEvent => ({
   start: r.start_time,
   end: r.end_time,
   note: r.note,
+  hasReward: r.has_reward ?? true,
 })
 
 const toDbAvail = (a: Availability) => ({

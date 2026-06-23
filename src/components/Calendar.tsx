@@ -457,6 +457,7 @@ function DayPanel({
       start: "10:00",
       end: "",
       note: "",
+      hasReward: true,
     };
   }
 
@@ -858,6 +859,26 @@ function EventForm({
         メモ
         <textarea value={draft.note} onChange={(e) => set("note", e.target.value)} rows={2} />
       </label>
+      {me.role === "owner" && (
+        <label className="reward-toggle">
+          報酬
+          <div className="shape-toggle">
+            {([true, false] as boolean[]).map((v) => (
+              <button
+                key={String(v)}
+                type="button"
+                className={`type-btn ${(draft.hasReward !== false) === v ? "on" : ""}`}
+                onClick={() => set("hasReward", v)}
+              >
+                {v ? "あり" : "なし"}
+              </button>
+            ))}
+          </div>
+          <span className="muted small">
+            「なし」にすると、この予定は報酬の承認対象になりません
+          </span>
+        </label>
+      )}
       <div className="form-actions">
         <button className="ghost" onClick={onCancel}>キャンセル</button>
         <button className="primary" onClick={() => handleSave(false)}>保存</button>
