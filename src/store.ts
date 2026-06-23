@@ -256,6 +256,13 @@ export function deleteEvent(id: string): void {
   deleteRemote("schedule_events", { id });
 }
 
+// 予定の報酬有無を切り替える
+export function setEventReward(eventId: string, hasReward: boolean): void {
+  const ev = getEvents().find((e) => e.id === eventId);
+  if (!ev) return;
+  upsertEvent({ ...ev, hasReward });
+}
+
 // ---- アプリ内通知（自分に割り当てられた新しい予定） ----
 function seenEventsKey(userId: string): string {
   return `sns_seen_events_${userId}`;
