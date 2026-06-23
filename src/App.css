@@ -138,6 +138,33 @@ label input, label select, label textarea { margin-top: 6px; font-weight: 400; }
 }
 .auth-card > .muted { font-size: 13px; margin-bottom: 28px; }
 
+.auth-card .logo { margin-bottom: 6px; }
+.auth-tabs {
+  display: flex;
+  gap: 6px;
+  background: var(--bg);
+  border-radius: var(--radius-sm);
+  padding: 4px;
+  margin-bottom: 18px;
+}
+.auth-tabs button {
+  flex: 1;
+  border: none;
+  background: transparent;
+  padding: 9px 0;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--text-2);
+  cursor: pointer;
+}
+.auth-tabs button.active {
+  background: #fff;
+  color: var(--primary-d);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+}
+.auth-card .ghost.full { margin-top: 10px; }
+
 .tab-switch {
   display: flex;
   gap: 4px;
