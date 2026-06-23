@@ -1,0 +1,144 @@
+import { useMemo, useState } from "react";
+import type { User } from "../types";
+import { getEventApprovals, getEvents, getMembers, getVideoTasks } from "../store";
+import { quarterLabel, quarterOf, todayStr, yen } from "../lib/date";
+import {
+  HISTORY_STATUS_LABEL,
+  buildWorkHistory,
+  workHistoryQuarters,
+} from "../lib/pay";
+import { openWorkHistoryPdf } from "../lib/historyPdf";
+
+// 四半期ごとの稼働履歴。メンバーは自分、管理者はメンバーを選んで閲覧。
+export default function WorkHistory({ me }: { me: User }) {
+  const isOwner = me.role === "owner";
+  const events = useMemo(() => getEvents(), []);
+  const approvals = useMemo(() => getEventApprovals(), []);
+  const videoTasks = useMemo(() => getVideoTasks(), []);
+  const members = useMemo(() => getMembers(), []);
+
+  const [targetId, setTargetId] = useState(isOwner ? members[0]?.id ?? "" : me.id);
+  const target = isOwner ? members.find((m) => m.id === targetId) : me;
+
+  const quarters = useMemo(() => {
+    if (!target) return [quarterOf(todayStr())];
+    const qs = workHistoryQuarters(events, videoTasks, target.id);
+    return qs.length ? qs : [quarterOf(todayStr())];
+  }, [events, videoTasks, target]);
+
+  const [quarter, setQuarter] = useState(quarters[0]);
+  if (!quarters.includes(quarter)) setQuarter(quarters[0]);
+
+  const { rows, summary } = useMemo(
+    () =>
+      target
+        ? buildWorkHistory(events, approvals, videoTasks, target.id, quarter)
+        : { rows: [], summary: { count: 0, totalHours: 0, confirmedAmount: 0, pendingAmount: 0 } },
+    [events, approvals, videoTasks, target, quarter]
+  );
+
+  function exportPdf() {
+    if (!target) return;
+    openWorkHistoryPdf({
+      memberName: target.name,
+      periodLabel: quarterLabel(quarter),
+      rows,
+      summary,
+    });
+  }
+
+  return (
+    <div className="history-view">
+      <div className="section-head">
+        <h2>稼働履歴</h2>
+        <p className="muted">
+          四半期ごとの活動内容・稼働時間・報酬をまとめて確認できます。
+        </p>
+      </div>
+
+      <div className="history-controls">
+        {isOwner && (
+          <label className="quarter-select">
+            メンバー
+            <select value={targetId} onChange={(e) => setTargetId(e.target.value)}>
+              {members.length === 0 ? (
+                <option value="">メンバーがいません</option>
+              ) : (
+                members.map((m) => (
+                  <option key={m.id} value={m.id}>{m.name}</option>
+                ))
+              )}
+            </select>
+          </label>
+        )}
+        <label className="quarter-select">
+          対象期間
+          <select value={quarter} onChange={(e) => setQuarter(e.target.value)}>
+            {quarters.map((q) => (
+              <option key={q} value={q}>{quarterLabel(q)}</option>
+            ))}
+          </select>
+        </label>
+        <button className="ghost" onClick={exportPdf} disabled={!target}>
+          🖨 PDFで出力
+        </button>
+      </div>
+
+      <div className="pay-summary">
+        <div className="pay-card">
+          <span className="pay-label">活動件数</span>
+          <span className="pay-value">{summary.count}件</span>
+        </div>
+        <div className="pay-card">
+          <span className="pay-label">総稼働時間</span>
+          <span className="pay-value">{summary.totalHours.toFixed(1)}h</span>
+        </div>
+        <div className="pay-card highlight">
+          <span className="pay-label">確定報酬</span>
+          <span className="pay-value">{yen(summary.confirmedAmount)}</span>
+        </div>
+        <div className="pay-card">
+          <span className="pay-label">承認待ち</span>
+          <span className="pay-value">{yen(summary.pendingAmount)}</span>
+        </div>
+      </div>
+
+      <table className="members-table history-table">
+        <thead>
+          <tr>
+            <th>日付</th>
+            <th>活動内容</th>
+            <th>種別</th>
+            <th>場所</th>
+            <th>稼働</th>
+            <th>報酬</th>
+            <th>状態</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.length === 0 ? (
+            <tr>
+              <td colSpan={7} className="muted">この期間の活動はありません。</td>
+            </tr>
+          ) : (
+            rows.map((r) => (
+              <tr key={r.id}>
+                <td>{r.date.replace(/-/g, "/")}</td>
+                <td>{r.title}</td>
+                <td className="muted">{r.typeLabel}</td>
+                <td className="muted">{r.location}</td>
+                <td>{r.hours > 0 ? `${r.hours.toFixed(1)}h` : "—"}</td>
+                <td className="amount">{r.amount != null ? yen(r.amount) : "—"}</td>
+                <td>
+                  <span className={`hist-status ${r.status}`}>
+                    {HISTORY_STATUS_LABEL[r.status]}
+                  </span>
+                </td>
+              </tr>
+            ))
+          )}
+        </tbody>
+      </table>
+    </div>
+  );
+}

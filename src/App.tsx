@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import "./App.css";
 import {
   Calendar as CalendarIcon, Clock, Inbox, Banknote, Settings,
-  Users, BarChart2, LogOut, ClipboardList, FolderKanban, type LucideIcon,
+  Users, BarChart2, LogOut, ClipboardList, FolderKanban, History, type LucideIcon,
 } from "lucide-react";
 import type { User } from "./types";
 import {
@@ -26,6 +26,7 @@ import Payments from "./components/Payments";
 import Requests from "./components/Requests";
 import MyPay from "./components/MyPay";
 import Projects from "./components/Projects";
+import WorkHistory from "./components/WorkHistory";
 import ProfileSettings from "./components/ProfileSettings";
 
 type Tab =
@@ -38,7 +39,8 @@ type Tab =
   | "members"
   | "payments"
   | "tasks"
-  | "projects";
+  | "projects"
+  | "history";
 
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
@@ -100,6 +102,7 @@ export default function App() {
   const tabs: { key: Tab; label: string; icon: LucideIcon; ownerOnly?: boolean; memberOnly?: boolean }[] = [
     { key: "calendar", label: "カレンダー", icon: CalendarIcon },
     { key: "projects", label: "案件一覧", icon: FolderKanban },
+    { key: "history", label: "稼働履歴", icon: History },
     { key: "availability", label: "稼働日設定", icon: Clock, memberOnly: true },
     {
       key: "requests",
@@ -181,6 +184,7 @@ export default function App() {
         {tab === "requests" && !isOwner && <Requests me={user} />}
         {tab === "mypay" && !isOwner && <MyPay me={user} />}
         {tab === "projects" && <Projects me={user} />}
+        {tab === "history" && <WorkHistory me={user} />}
         {tab === "settings" && (
           <ProfileSettings me={user} onUpdated={(u) => setUser(u)} />
         )}

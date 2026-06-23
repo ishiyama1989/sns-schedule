@@ -1,7 +1,7 @@
 // 報酬計算の共通ロジック
 // 稼働(work)・撮影(shooting)を労働時間としてカウントし、納品(delivery)は除外。
 
-import type { ScheduleEvent, VideoTask } from "../types";
+import type { EventApproval, ScheduleEvent, VideoTask } from "../types";
 import { hoursBetween, quarterOf } from "./date";
 
 export interface PayLine {
@@ -57,4 +57,135 @@ export function videoTasksForQuarter(
         quarterOf(t.completedAt ?? t.deadline) === quarter
     )
     .sort((a, b) => ((a.completedAt ?? a.deadline) < (b.completedAt ?? b.deadline) ? -1 : 1));
+}
+
+// ---- 稼働履歴 ----
+export type HistoryStatus = "confirmed" | "pending" | "noreward" | "undetermined";
+
+export const HISTORY_STATUS_LABEL: Record<HistoryStatus, string> = {
+  confirmed: "確定",
+  pending: "承認待ち",
+  noreward: "報酬なし",
+  undetermined: "未確定",
+};
+
+export interface HistoryRow {
+  id: string;
+  date: string; // "YYYY-MM-DD"
+  title: string;
+  typeLabel: string;
+  location: string;
+  hours: number; // 動画は0
+  amount: number | null; // 未確定/報酬なしは null
+  status: HistoryStatus;
+}
+
+export interface HistorySummary {
+  count: number;
+  totalHours: number;
+  confirmedAmount: number;
+  pendingAmount: number;
+}
+
+const HIST_TYPE_LABEL: Record<string, string> = {
+  shooting: "撮影",
+  meeting: "会議",
+  delivery: "納品",
+  other: "その他",
+  work: "稼働",
+};
+
+// そのユーザーに活動（担当予定 or 完了動画）のある四半期一覧（新しい順）
+export function workHistoryQuarters(
+  events: ScheduleEvent[],
+  videoTasks: VideoTask[],
+  userId: string
+): string[] {
+  const set = new Set<string>();
+  for (const e of events)
+    if (e.assigneeIds.includes(userId)) set.add(quarterOf(e.date));
+  for (const t of videoTasks)
+    if (t.toUserId === userId && t.status === "completed")
+      set.add(quarterOf(t.completedAt ?? t.deadline));
+  return Array.from(set).sort().reverse();
+}
+
+// 指定ユーザー・四半期の稼働履歴（すべての活動）を組み立てる
+export function buildWorkHistory(
+  events: ScheduleEvent[],
+  approvals: EventApproval[],
+  videoTasks: VideoTask[],
+  userId: string,
+  quarter: string
+): { rows: HistoryRow[]; summary: HistorySummary } {
+  const rows: HistoryRow[] = [];
+
+  for (const e of events) {
+    if (!e.assigneeIds.includes(userId)) continue;
+    if (quarterOf(e.date) !== quarter) continue;
+    const appr = approvals.find(
+      (a) => a.eventId === e.id && a.userId === userId && a.status !== "rejected"
+    );
+    let status: HistoryStatus;
+    let hours: number;
+    let amount: number | null;
+    if (appr && appr.status === "approved") {
+      status = "confirmed";
+      hours = appr.hours;
+      amount = appr.amount;
+    } else if (appr && appr.status === "requested") {
+      status = "pending";
+      hours = appr.hours;
+      amount = appr.amount;
+    } else if (e.hasReward === false) {
+      status = "noreward";
+      hours = hoursBetween(e.start, e.end);
+      amount = null;
+    } else {
+      status = "undetermined";
+      hours = hoursBetween(e.start, e.end);
+      amount = null;
+    }
+    rows.push({
+      id: e.id,
+      date: e.date,
+      title: e.title,
+      typeLabel: HIST_TYPE_LABEL[e.type] ?? e.type,
+      location: e.location || "—",
+      hours,
+      amount,
+      status,
+    });
+  }
+
+  for (const t of videoTasks) {
+    if (t.toUserId !== userId || t.status !== "completed") continue;
+    const d = t.completedAt ?? t.deadline;
+    if (quarterOf(d) !== quarter) continue;
+    rows.push({
+      id: t.id,
+      date: d,
+      title: t.title,
+      typeLabel: "動画編集",
+      location: "—",
+      hours: 0,
+      amount: t.amount,
+      status: "confirmed",
+    });
+  }
+
+  rows.sort((a, b) => (a.date < b.date ? 1 : -1)); // 新しい順
+
+  const summary: HistorySummary = {
+    count: rows.length,
+    totalHours: rows.reduce((s, r) => s + r.hours, 0),
+    confirmedAmount: rows
+      .filter((r) => r.status === "confirmed")
+      .reduce((s, r) => s + (r.amount ?? 0), 0),
+    pendingAmount: rows
+      .filter((r) => r.status === "pending")
+      .reduce((s, r) => s + (r.amount ?? 0), 0),
+  };
+
+  return { rows, summary };
 }
