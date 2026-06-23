@@ -102,7 +102,6 @@ export default function App() {
   const tabs: { key: Tab; label: string; icon: LucideIcon; ownerOnly?: boolean; memberOnly?: boolean }[] = [
     { key: "calendar", label: "カレンダー", icon: CalendarIcon },
     { key: "projects", label: "案件一覧", icon: FolderKanban },
-    { key: "history", label: "稼働履歴", icon: History },
     { key: "availability", label: "稼働日設定", icon: Clock, memberOnly: true },
     {
       key: "requests",
@@ -116,6 +115,7 @@ export default function App() {
       icon: Banknote,
       memberOnly: true,
     },
+    { key: "history", label: "稼働履歴", icon: History, memberOnly: true },
     {
       key: "tasks",
       label: `依頼管理${taskCount > 0 ? `（${taskCount}）` : ""}`,
@@ -128,6 +128,7 @@ export default function App() {
       icon: BarChart2,
       ownerOnly: true,
     },
+    { key: "history", label: "稼働履歴", icon: History, ownerOnly: true },
     { key: "members", label: "メンバー管理", icon: Users, ownerOnly: true },
     { key: "settings", label: "設定", icon: Settings },
   ];
