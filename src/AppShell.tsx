@@ -88,5 +88,12 @@ export default function AppShell() {
   if (stage === "needOrg") return <CreateOrg onCreated={refresh} />;
 
   // 認証＋組織＋データ読み込みOK。本体アプリを表示。
-  return <App me={me!} orgName={org?.name ?? ""} onLogout={handleLogout} />;
+  return (
+    <App
+      me={me!}
+      orgName={org?.name ?? ""}
+      joinCode={org?.joinCode}
+      onLogout={handleLogout}
+    />
+  );
 }

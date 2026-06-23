@@ -23,6 +23,7 @@ export interface Org {
   id: string;
   name: string;
   plan: string;
+  joinCode?: string;
 }
 
 export async function signUp(email: string, password: string) {
@@ -81,7 +82,23 @@ export async function getMyProfile(): Promise<Profile | null> {
 export async function getMyOrg(): Promise<Org | null> {
   const { data, error } = await supabase.from("organizations").select("*").maybeSingle();
   if (error || !data) return null;
-  return { id: data.id, name: data.name, plan: data.plan ?? "free" };
+  return { id: data.id, name: data.name, plan: data.plan ?? "free", joinCode: data.join_code ?? undefined };
+}
+
+// 招待コードでメンバーとして組織に参加
+export async function joinOrgByCode(
+  code: string,
+  memberName: string
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const { error } = await supabase.rpc("join_org_by_code", {
+    code: code.trim(),
+    member_name: memberName.trim(),
+  });
+  if (error) {
+    if (/invalid code/i.test(error.message)) return { ok: false, error: "招待コードが正しくありません" };
+    return { ok: false, error: error.message };
+  }
+  return { ok: true };
 }
 
 // サインアップ後、最初のログインで「組織＋オーナー」を作成

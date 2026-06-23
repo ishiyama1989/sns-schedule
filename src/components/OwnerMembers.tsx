@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { deleteUser, getMembers, updateUser } from "../store";
+import { getMembers, updateUser } from "../store";
 import type { User } from "../types";
 
-// オーナーが登録ユーザー（メンバー）の情報を編集・削除する画面
-export default function OwnerMembers() {
+// オーナーがメンバーを招待（コード共有）・編集する画面
+export default function OwnerMembers({ joinCode }: { joinCode?: string }) {
   const [version, setVersion] = useState(0);
   const [editing, setEditing] = useState<User | null>(null);
+  const [copied, setCopied] = useState(false);
   const members = getMembers();
   void version;
 
@@ -13,24 +14,48 @@ export default function OwnerMembers() {
     setVersion((v) => v + 1);
   }
 
+  function copyCode() {
+    if (!joinCode) return;
+    navigator.clipboard?.writeText(joinCode).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    });
+  }
+
   return (
     <div className="members-view">
       <div className="section-head">
         <h2>メンバー管理</h2>
         <p className="muted">
-          登録ユーザーの情報（名前・パスワード）を編集できます。削除も可能です。
+          メンバーを招待するには、下の招待コードを伝えてください。メンバーは新規登録時に
+          「招待コードで参加」を選び、このコードを入力します。
         </p>
       </div>
 
+      <div className="settings-card invite-card">
+        <h3>招待コード</h3>
+        <div className="invite-code-row">
+          <span className="invite-code">{joinCode ?? "—"}</span>
+          <button className="ghost" onClick={copyCode} disabled={!joinCode}>
+            {copied ? "コピーしました ✓" : "コピー"}
+          </button>
+        </div>
+        <p className="muted small">
+          このコードを知っている人だけが、あなたの会社にメンバーとして参加できます。
+        </p>
+      </div>
+
+      <h3 className="req-section-title">メンバー（{members.length}名）</h3>
       {members.length === 0 ? (
         <p className="muted">
-          まだメンバーがいません。メンバーが新規登録するとここに表示されます。
+          まだメンバーがいません。招待コードを伝えて参加してもらいましょう。
         </p>
       ) : (
         <table className="members-table">
           <thead>
             <tr>
               <th>名前</th>
+              <th>時給</th>
               <th>操作</th>
             </tr>
           </thead>
@@ -38,27 +63,11 @@ export default function OwnerMembers() {
             {members.map((m) => (
               <tr key={m.id}>
                 <td>{m.name}</td>
+                <td>¥{m.hourlyRate.toLocaleString("ja-JP")}</td>
                 <td>
-                  <div className="row-actions">
-                    <button className="ghost" onClick={() => setEditing(m)}>
-                      編集
-                    </button>
-                    <button
-                      className="ghost danger"
-                      onClick={() => {
-                        if (
-                          confirm(
-                            `「${m.name}」を削除しますか？\nこのユーザーの空き状況や予定の担当からも外れます。`
-                          )
-                        ) {
-                          deleteUser(m.id);
-                          refresh();
-                        }
-                      }}
-                    >
-                      削除
-                    </button>
-                  </div>
+                  <button className="ghost" onClick={() => setEditing(m)}>
+                    編集
+                  </button>
                 </td>
               </tr>
             ))}
@@ -91,16 +100,12 @@ function UserEditor({
 }) {
   const [name, setName] = useState(user.name);
   const [rate, setRate] = useState(String(user.hourlyRate));
-  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
   function save() {
-    if (password && !/^\d{4}$/.test(password))
-      return setError("パスワードは4桁の数字で入力してください");
     const res = updateUser(user.id, {
       name,
       hourlyRate: Number(rate) || 0,
-      password: password || undefined,
     });
     if (!res.ok) return setError(res.error);
     onSaved();
@@ -110,10 +115,8 @@ function UserEditor({
     <div className="modal-backdrop" onClick={onClose}>
       <div className="day-panel modal" onClick={(e) => e.stopPropagation()}>
         <div className="day-panel-head">
-          <h3>ユーザー情報の編集</h3>
-          <button className="ghost" onClick={onClose}>
-            ✕
-          </button>
+          <h3>メンバー情報の編集</h3>
+          <button className="ghost" onClick={onClose}>✕</button>
         </div>
 
         <label>
@@ -130,27 +133,12 @@ function UserEditor({
             onChange={(e) => setRate(e.target.value)}
           />
         </label>
-        <label>
-          パスワードを変更（任意・4桁の数字）
-          <input
-            type="password"
-            inputMode="numeric"
-            maxLength={4}
-            value={password}
-            onChange={(e) => setPassword(e.target.value.replace(/\D/g, "").slice(0, 4))}
-            placeholder="変更する場合のみ入力"
-          />
-        </label>
 
         {error && <p className="error">{error}</p>}
 
         <div className="form-actions">
-          <button className="ghost" onClick={onClose}>
-            キャンセル
-          </button>
-          <button className="primary" onClick={save}>
-            保存
-          </button>
+          <button className="ghost" onClick={onClose}>キャンセル</button>
+          <button className="primary" onClick={save}>保存</button>
         </div>
       </div>
     </div>

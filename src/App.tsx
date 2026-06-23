@@ -39,10 +39,12 @@ type Tab =
 export default function App({
   me,
   orgName,
+  joinCode,
   onLogout,
 }: {
   me: User;
   orgName: string;
+  joinCode?: string;
   onLogout: () => void;
 }) {
   const [user, setUser] = useState<User>(me);
@@ -139,7 +141,7 @@ export default function App({
         {tab === "settings" && (
           <ProfileSettings me={user} onUpdated={(u) => setUser(u)} />
         )}
-        {tab === "members" && isOwner && <OwnerMembers />}
+        {tab === "members" && isOwner && <OwnerMembers joinCode={joinCode} />}
         {tab === "payments" && isOwner && <Payments />}
         {tab === "tasks" && isOwner && <OwnerTasks me={user} />}
       </main>
