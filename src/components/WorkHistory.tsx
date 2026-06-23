@@ -20,14 +20,18 @@ export default function WorkHistory({ me }: { me: User }) {
   const [targetId, setTargetId] = useState(isOwner ? members[0]?.id ?? "" : me.id);
   const target = isOwner ? members.find((m) => m.id === targetId) : me;
 
+  const currentQuarter = quarterOf(todayStr());
   const quarters = useMemo(() => {
-    if (!target) return [quarterOf(todayStr())];
-    const qs = workHistoryQuarters(events, videoTasks, target.id);
-    return qs.length ? qs : [quarterOf(todayStr())];
-  }, [events, videoTasks, target]);
+    const set = new Set<string>(
+      target ? workHistoryQuarters(events, videoTasks, target.id) : []
+    );
+    set.add(currentQuarter); // 現在の四半期は常に選べるようにする
+    return Array.from(set).sort().reverse();
+  }, [events, videoTasks, target, currentQuarter]);
 
-  const [quarter, setQuarter] = useState(quarters[0]);
-  if (!quarters.includes(quarter)) setQuarter(quarters[0]);
+  // デフォルトは「現在の四半期」
+  const [quarter, setQuarter] = useState(currentQuarter);
+  if (!quarters.includes(quarter)) setQuarter(currentQuarter);
 
   const { rows, summary } = useMemo(
     () =>
