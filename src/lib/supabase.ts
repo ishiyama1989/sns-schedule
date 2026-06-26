@@ -266,6 +266,10 @@ const toDbMaterial = (m: ProjectMaterial) => ({
   note: m.note ?? null,
   created_by: m.createdBy,
   created_at: m.createdAt,
+  category: m.category ?? 'material',
+  media_type: m.mediaType ?? null,
+  assignee_id: m.assigneeId ?? null,
+  delivered_at: m.deliveredAt ?? null,
 })
 
 const fromDbMaterial = (r: any): ProjectMaterial => ({
@@ -278,6 +282,10 @@ const fromDbMaterial = (r: any): ProjectMaterial => ({
   note: r.note ?? undefined,
   createdBy: r.created_by ?? '',
   createdAt: r.created_at ?? '',
+  category: r.category ?? 'material',
+  mediaType: r.media_type ?? undefined,
+  assigneeId: r.assignee_id ?? undefined,
+  deliveredAt: r.delivered_at ?? undefined,
 })
 
 // ---- Sync helper: 行ごとに upsert（全削除はしない＝データ消失を防ぐ） ----

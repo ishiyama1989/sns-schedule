@@ -1,6 +1,8 @@
 import { useMemo, useRef, useState } from "react";
 import {
+  DELIVERABLE_MEDIA_LABEL,
   PROJECT_STATUS_LABEL,
+  type DeliverableMediaType,
   type Project,
   type ProjectStatus,
   type User,
@@ -252,6 +254,7 @@ function ProjectDetail({
   const [description, setDescription] = useState(project.description);
   const [assigneeIds, setAssigneeIds] = useState<string[]>(project.assigneeIds);
 
+  const today = new Date().toISOString().slice(0, 10);
   const [matTitle, setMatTitle] = useState("");
   const [matUrl, setMatUrl] = useState("");
   const [matNote, setMatNote] = useState("");
@@ -260,7 +263,22 @@ function ProjectDetail({
   const fileRef = useRef<HTMLInputElement>(null);
   const [v, setV] = useState(0);
 
-  const materials = useMemo(() => getMaterialsFor(project.id), [project.id, v]);
+  // 納品物の追加フォーム
+  const [delTitle, setDelTitle] = useState("");
+  const [delMedia, setDelMedia] = useState<DeliverableMediaType>("video");
+  const [delAssignee, setDelAssignee] = useState(members[0]?.id ?? "");
+  const [delUrl, setDelUrl] = useState("");
+  const [delDate, setDelDate] = useState(today);
+  const [delUploading, setDelUploading] = useState(false);
+  const [delMsg, setDelMsg] = useState<string | null>(null);
+  const delFileRef = useRef<HTMLInputElement>(null);
+
+  const allMaterials = useMemo(() => getMaterialsFor(project.id), [project.id, v]);
+  const materials = allMaterials.filter((m) => m.category !== "deliverable");
+  const deliverables = allMaterials.filter((m) => m.category === "deliverable");
+  const memberName = (id?: string) => members.find((m) => m.id === id)?.name ?? "—";
+  const mediaIcon = (t?: DeliverableMediaType) =>
+    t === "image" ? "🖼" : t === "other" ? "📦" : "🎬";
 
   function refreshMats() {
     setV((x) => x + 1);
@@ -296,6 +314,7 @@ function ProjectDetail({
       url: matUrl.trim(),
       note: matNote.trim() || undefined,
       createdBy: me.id,
+      category: "material",
     });
     setMatTitle("");
     setMatUrl("");
@@ -318,6 +337,7 @@ function ProjectDetail({
         filePath: res.path,
         note: matNote.trim() || undefined,
         createdBy: me.id,
+        category: "material",
       });
       setMatTitle("");
       setMatNote("");
@@ -327,6 +347,53 @@ function ProjectDetail({
     }
     setUploading(false);
     if (fileRef.current) fileRef.current.value = "";
+  }
+
+  // ---- 納品物の追加 ----
+  function deliverableBase() {
+    return {
+      projectId: project.id,
+      title: delTitle.trim(),
+      createdBy: me.id,
+      category: "deliverable" as const,
+      mediaType: delMedia,
+      assigneeId: delAssignee || undefined,
+      deliveredAt: delDate || undefined,
+    };
+  }
+
+  function addDeliverableLink() {
+    if (!delTitle.trim() || !delUrl.trim()) {
+      alert("タイトルとURLを入力してください");
+      return;
+    }
+    addMaterial({ ...deliverableBase(), kind: "link", url: delUrl.trim() });
+    setDelTitle("");
+    setDelUrl("");
+    refreshMats();
+  }
+
+  async function onDeliverableFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setDelUploading(true);
+    setDelMsg(null);
+    const res = await uploadMaterialFile(project.id, file);
+    if (res) {
+      addMaterial({
+        ...deliverableBase(),
+        title: delTitle.trim() || file.name,
+        kind: "file",
+        url: res.url,
+        filePath: res.path,
+      });
+      setDelTitle("");
+      refreshMats();
+    } else {
+      setDelMsg("アップロードに失敗しました（ストレージ設定をご確認ください）");
+    }
+    setDelUploading(false);
+    if (delFileRef.current) delFileRef.current.value = "";
   }
 
   return (
@@ -466,6 +533,99 @@ function ProjectDetail({
               <p className="muted small">
                 ※ ファイルはタイトル未入力ならファイル名で登録されます
               </p>
+            </div>
+
+            {/* 納品物 */}
+            <h4 className="material-head">納品物（{deliverables.length}）</h4>
+            <div className="material-list">
+              {deliverables.length === 0 ? (
+                <p className="muted small">まだ納品物がありません。</p>
+              ) : (
+                deliverables.map((m) => (
+                  <div key={m.id} className="material-row">
+                    <span className="material-kind">{mediaIcon(m.mediaType)}</span>
+                    <div className="material-body">
+                      <a href={m.url} target="_blank" rel="noopener noreferrer" className="material-title">
+                        {m.title}
+                      </a>
+                      <div className="material-note">
+                        担当: {memberName(m.assigneeId)}
+                        {m.deliveredAt ? ` ／ ${m.deliveredAt.replace(/-/g, "/")}` : ""}
+                        {m.kind === "file" ? " ／ 📄ファイル" : ""}
+                      </div>
+                    </div>
+                    <button
+                      className="material-del"
+                      title="削除"
+                      onClick={() => {
+                        if (confirm("この納品物を削除しますか？")) {
+                          deleteMaterial(m.id);
+                          refreshMats();
+                        }
+                      }}
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+
+            <div className="material-add">
+              <h4 className="material-head">納品物を追加</h4>
+              <input
+                placeholder="タイトル（例: リール本編 vol.1）"
+                value={delTitle}
+                onChange={(e) => setDelTitle(e.target.value)}
+              />
+              <div className="task-form-row">
+                <label>
+                  種別
+                  <select
+                    value={delMedia}
+                    onChange={(e) => setDelMedia(e.target.value as DeliverableMediaType)}
+                  >
+                    {(Object.keys(DELIVERABLE_MEDIA_LABEL) as DeliverableMediaType[]).map((t) => (
+                      <option key={t} value={t}>{DELIVERABLE_MEDIA_LABEL[t]}</option>
+                    ))}
+                  </select>
+                </label>
+                <label>
+                  担当者
+                  <select value={delAssignee} onChange={(e) => setDelAssignee(e.target.value)}>
+                    <option value="">未設定</option>
+                    {members.map((m) => (
+                      <option key={m.id} value={m.id}>{m.name}</option>
+                    ))}
+                  </select>
+                </label>
+                <label>
+                  納品日
+                  <input type="date" value={delDate} onChange={(e) => setDelDate(e.target.value)} />
+                </label>
+              </div>
+              <input
+                placeholder="リンクURL（納品物の置き場所）"
+                value={delUrl}
+                onChange={(e) => setDelUrl(e.target.value)}
+              />
+              <div className="material-add-actions">
+                <button className="ghost" onClick={addDeliverableLink}>🔗 リンクで追加</button>
+                <button
+                  className="ghost"
+                  disabled={delUploading}
+                  onClick={() => delFileRef.current?.click()}
+                >
+                  {delUploading ? "アップロード中…" : "📄 ファイルで追加"}
+                </button>
+                <input
+                  ref={delFileRef}
+                  type="file"
+                  style={{ display: "none" }}
+                  onChange={onDeliverableFile}
+                />
+              </div>
+              {delMsg && <p className="error">{delMsg}</p>}
             </div>
           </>
         )}
