@@ -148,6 +148,17 @@ export interface Project {
 // 案件に紐づく資料（リンク or アップロードファイル）
 export type MaterialKind = "link" | "file";
 
+// 資料 = reference / 納品物 = deliverable
+export type MaterialCategory = "material" | "deliverable";
+// 納品物の種別
+export type DeliverableMediaType = "video" | "image" | "other";
+
+export const DELIVERABLE_MEDIA_LABEL: Record<DeliverableMediaType, string> = {
+  video: "動画",
+  image: "画像",
+  other: "その他",
+};
+
 export interface ProjectMaterial {
   id: string;
   projectId: string;
@@ -158,6 +169,10 @@ export interface ProjectMaterial {
   note?: string;
   createdBy: string; // 登録したユーザーID
   createdAt: string;
+  category?: MaterialCategory; // 既定: material（資料）
+  mediaType?: DeliverableMediaType; // 納品物の種別
+  assigneeId?: string; // 納品物の担当者（メンバー）
+  deliveredAt?: string; // 納品日 "YYYY-MM-DD"
 }
 
 // メンバーの空き状況
