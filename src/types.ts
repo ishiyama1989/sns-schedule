@@ -159,20 +159,27 @@ export const DELIVERABLE_MEDIA_LABEL: Record<DeliverableMediaType, string> = {
   other: "その他",
 };
 
+// 納品物の確認状態（pending=確認待ち / confirmed=報酬確定）
+export type DeliverableStatus = "pending" | "confirmed";
+
 export interface ProjectMaterial {
   id: string;
   projectId: string;
   title: string;
   kind: MaterialKind;
-  url: string; // リンクURL または ストレージの公開URL
+  url: string; // 資料のリンクURL / ストレージURL（納品物では空でも可）
   filePath?: string; // ストレージ上のパス（fileの場合）
-  note?: string;
+  note?: string; // メモ
   createdBy: string; // 登録したユーザーID
   createdAt: string;
   category?: MaterialCategory; // 既定: material（資料）
   mediaType?: DeliverableMediaType; // 納品物の種別
   assigneeId?: string; // 納品物の担当者（メンバー）
-  deliveredAt?: string; // 納品日 "YYYY-MM-DD"
+  deliveredAt?: string; // 納品日 "YYYY-MM-DD"（未設定可）
+  // 納品物の報酬ワークフロー
+  delStatus?: DeliverableStatus; // 既定: pending
+  rewardAmount?: number; // 管理者が確定した報酬額
+  confirmedAt?: string; // 管理者が確定した日
 }
 
 // メンバーの空き状況
