@@ -762,7 +762,21 @@ export function addMaterial(
   saveMaterials([...getMaterials(), mat]);
 }
 
+export function updateMaterial(
+  id: string,
+  patch: Partial<ProjectMaterial>
+): void {
+  saveMaterials(getMaterials().map((m) => (m.id === id ? { ...m, ...patch } : m)));
+}
+
 export function deleteMaterial(id: string): void {
   write(KEYS.materials, getMaterials().filter((m) => m.id !== id));
   deleteRemote("project_materials", { id });
+}
+
+// 管理者が報酬を確定した納品物（報酬集計用）
+export function getConfirmedDeliverables(): ProjectMaterial[] {
+  return getMaterials().filter(
+    (m) => m.category === "deliverable" && m.delStatus === "confirmed"
+  );
 }

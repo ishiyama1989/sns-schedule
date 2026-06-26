@@ -1,6 +1,12 @@
 import { useMemo, useState } from "react";
 import type { User } from "../types";
-import { getEventApprovals, getEvents, getMembers, getVideoTasks } from "../store";
+import {
+  getConfirmedDeliverables,
+  getEventApprovals,
+  getEvents,
+  getMembers,
+  getVideoTasks,
+} from "../store";
 import { quarterLabel, quarterOf, todayStr, yen } from "../lib/date";
 import {
   HISTORY_STATUS_LABEL,
@@ -15,6 +21,7 @@ export default function WorkHistory({ me }: { me: User }) {
   const events = useMemo(() => getEvents(), []);
   const approvals = useMemo(() => getEventApprovals(), []);
   const videoTasks = useMemo(() => getVideoTasks(), []);
+  const deliverables = useMemo(() => getConfirmedDeliverables(), []);
   const members = useMemo(() => getMembers(), []);
 
   const [targetId, setTargetId] = useState(isOwner ? members[0]?.id ?? "" : me.id);
@@ -23,11 +30,11 @@ export default function WorkHistory({ me }: { me: User }) {
   const currentQuarter = quarterOf(todayStr());
   const quarters = useMemo(() => {
     const set = new Set<string>(
-      target ? workHistoryQuarters(events, videoTasks, target.id) : []
+      target ? workHistoryQuarters(events, videoTasks, target.id, deliverables) : []
     );
     set.add(currentQuarter); // 現在の四半期は常に選べるようにする
     return Array.from(set).sort().reverse();
-  }, [events, videoTasks, target, currentQuarter]);
+  }, [events, videoTasks, deliverables, target, currentQuarter]);
 
   // デフォルトは「現在の四半期」
   const [quarter, setQuarter] = useState(currentQuarter);
@@ -36,9 +43,9 @@ export default function WorkHistory({ me }: { me: User }) {
   const { rows, summary } = useMemo(
     () =>
       target
-        ? buildWorkHistory(events, approvals, videoTasks, target.id, quarter)
+        ? buildWorkHistory(events, approvals, videoTasks, target.id, quarter, deliverables)
         : { rows: [], summary: { count: 0, totalHours: 0, confirmedAmount: 0, pendingAmount: 0 } },
-    [events, approvals, videoTasks, target, quarter]
+    [events, approvals, videoTasks, deliverables, target, quarter]
   );
 
   function exportPdf() {

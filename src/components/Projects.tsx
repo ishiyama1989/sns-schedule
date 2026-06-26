@@ -15,9 +15,12 @@ import {
   getMaterialsFor,
   getMembers,
   getProjects,
+  updateMaterial,
   updateProject,
 } from "../store";
 import { uploadMaterialFile } from "../lib/supabase";
+import { sendPushToUsers } from "../lib/push";
+import { yen } from "../lib/date";
 
 const STATUS_ORDER: ProjectStatus[] = ["active", "paused", "done"];
 
@@ -264,15 +267,21 @@ function ProjectDetail({
   const fileRef = useRef<HTMLInputElement>(null);
   const [v, setV] = useState(0);
 
-  // 納品物の追加フォーム
+  const isOwner = me.role === "owner";
+
+  // 納品物の追加フォーム（リンク/ファイルなし）
   const [delTitle, setDelTitle] = useState("");
   const [delMedia, setDelMedia] = useState<DeliverableMediaType>("video");
   const [delAssignee, setDelAssignee] = useState(members[0]?.id ?? "");
-  const [delUrl, setDelUrl] = useState("");
   const [delDate, setDelDate] = useState(today);
-  const [delUploading, setDelUploading] = useState(false);
-  const [delMsg, setDelMsg] = useState<string | null>(null);
-  const delFileRef = useRef<HTMLInputElement>(null);
+  const [delDateSet, setDelDateSet] = useState(true); // false = 納品日 未設定
+  const [delNote, setDelNote] = useState("");
+
+  // 管理者の納品確認フォーム（納品物ごと）
+  const [confirmingId, setConfirmingId] = useState<string | null>(null);
+  const [confAmount, setConfAmount] = useState("0");
+  const [confDate, setConfDate] = useState(today);
+  const [confDateSet, setConfDateSet] = useState(true);
 
   const allMaterials = useMemo(() => getMaterialsFor(project.id), [project.id, v]);
   const materials = allMaterials.filter((m) => m.category !== "deliverable");
@@ -352,53 +361,55 @@ function ProjectDetail({
     if (fileRef.current) fileRef.current.value = "";
   }
 
-  // ---- 納品物の追加 ----
-  function deliverableBase() {
-    return {
-      projectId: project.id,
-      title: delTitle.trim(),
-      createdBy: me.id,
-      category: "deliverable" as const,
-      mediaType: delMedia,
-      assigneeId: delAssignee || undefined,
-      deliveredAt: delDate || undefined,
-    };
-  }
-
-  function addDeliverableLink() {
-    if (!delTitle.trim() || !delUrl.trim()) {
-      alert("タイトルとURLを入力してください");
+  // ---- 納品物の登録（リンク/ファイルなし） ----
+  function addDeliverable() {
+    if (!delTitle.trim()) {
+      alert("タイトルを入力してください");
       return;
     }
-    addMaterial({ ...deliverableBase(), kind: "link", url: delUrl.trim() });
+    addMaterial({
+      projectId: project.id,
+      title: delTitle.trim(),
+      kind: "link",
+      url: "",
+      note: delNote.trim() || undefined,
+      createdBy: me.id,
+      category: "deliverable",
+      mediaType: delMedia,
+      assigneeId: delAssignee || undefined,
+      deliveredAt: delDateSet ? delDate || undefined : undefined,
+      delStatus: "pending",
+    });
     setDelTitle("");
-    setDelUrl("");
+    setDelNote("");
     refreshMats();
     setAdding(null);
   }
 
-  async function onDeliverableFile(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setDelUploading(true);
-    setDelMsg(null);
-    const res = await uploadMaterialFile(project.id, file);
-    if (res) {
-      addMaterial({
-        ...deliverableBase(),
-        title: delTitle.trim() || file.name,
-        kind: "file",
-        url: res.url,
-        filePath: res.path,
-      });
-      setDelTitle("");
-      refreshMats();
-      setAdding(null);
-    } else {
-      setDelMsg("アップロードに失敗しました（ストレージ設定をご確認ください）");
+  // ---- 管理者の納品確認（報酬確定） ----
+  function openConfirm(m: { id: string; deliveredAt?: string; rewardAmount?: number }) {
+    setConfirmingId(m.id);
+    setConfAmount(String(m.rewardAmount ?? 0));
+    setConfDateSet(!!m.deliveredAt);
+    setConfDate(m.deliveredAt ?? today);
+  }
+  function confirmDeliverable(id: string, assigneeId?: string, title?: string) {
+    updateMaterial(id, {
+      delStatus: "confirmed",
+      rewardAmount: Math.round(Number(confAmount)) || 0,
+      deliveredAt: confDateSet ? confDate || undefined : undefined,
+      confirmedAt: today,
+    });
+    if (assigneeId) {
+      sendPushToUsers(
+        [assigneeId],
+        "納品物の報酬が確定しました",
+        `「${title ?? "納品物"}」の報酬 ${yen(Math.round(Number(confAmount)) || 0)} が確定しました`,
+        "/"
+      );
     }
-    setDelUploading(false);
-    if (delFileRef.current) delFileRef.current.value = "";
+    setConfirmingId(null);
+    refreshMats();
   }
 
   return (
@@ -518,7 +529,7 @@ function ProjectDetail({
               </div>
             )}
 
-            {/* 納品物の追加フォーム（ボタンで開閉） */}
+            {/* 納品物の追加フォーム（ボタンで開閉。リンク/ファイルなし） */}
             {adding === "deliverable" && (
               <div className="material-add">
                 <div className="material-add-head">
@@ -548,24 +559,27 @@ function ProjectDetail({
                       ))}
                     </select>
                   </label>
-                  <label>
-                    納品日
-                    <input type="date" value={delDate} onChange={(e) => setDelDate(e.target.value)} />
-                  </label>
                 </div>
-                <input
-                  placeholder="リンクURL（納品物の置き場所）"
-                  value={delUrl}
-                  onChange={(e) => setDelUrl(e.target.value)}
+                <label className="check-line">
+                  <input
+                    type="checkbox"
+                    checked={delDateSet}
+                    onChange={(e) => setDelDateSet(e.target.checked)}
+                  />
+                  納品日を設定する
+                </label>
+                {delDateSet && (
+                  <input type="date" value={delDate} onChange={(e) => setDelDate(e.target.value)} />
+                )}
+                <textarea
+                  rows={2}
+                  placeholder="メモ（任意）"
+                  value={delNote}
+                  onChange={(e) => setDelNote(e.target.value)}
                 />
                 <div className="material-add-actions">
-                  <button className="ghost" onClick={addDeliverableLink}>🔗 リンクで追加</button>
-                  <button className="ghost" disabled={delUploading} onClick={() => delFileRef.current?.click()}>
-                    {delUploading ? "アップロード中…" : "📄 ファイルで追加"}
-                  </button>
-                  <input ref={delFileRef} type="file" style={{ display: "none" }} onChange={onDeliverableFile} />
+                  <button className="primary" onClick={addDeliverable}>登録する</button>
                 </div>
-                {delMsg && <p className="error">{delMsg}</p>}
               </div>
             )}
 
@@ -606,33 +620,94 @@ function ProjectDetail({
               <>
                 <h4 className="material-head">納品物（{deliverables.length}）</h4>
                 <div className="material-list">
-                  {deliverables.map((m) => (
-                    <div key={m.id} className="material-row">
-                      <span className="material-kind">{mediaIcon(m.mediaType)}</span>
-                      <div className="material-body">
-                        <a href={m.url} target="_blank" rel="noopener noreferrer" className="material-title">
-                          {m.title}
-                        </a>
-                        <div className="material-note">
-                          担当: {memberName(m.assigneeId)}
-                          {m.deliveredAt ? ` ／ ${m.deliveredAt.replace(/-/g, "/")}` : ""}
-                          {m.kind === "file" ? " ／ 📄ファイル" : ""}
+                  {deliverables.map((m) => {
+                    const confirmed = m.delStatus === "confirmed";
+                    return (
+                      <div key={m.id} className="material-row deliverable-row">
+                        <span className="material-kind">{mediaIcon(m.mediaType)}</span>
+                        <div className="material-body">
+                          <span className="material-title plain">{m.title}</span>
+                          <div className="material-note">
+                            担当: {memberName(m.assigneeId)} ／ 納品日:{" "}
+                            {m.deliveredAt ? m.deliveredAt.replace(/-/g, "/") : "未設定"}
+                          </div>
+                          {m.note && <div className="material-note">📝 {m.note}</div>}
+                          <div className="deliverable-status">
+                            {confirmed ? (
+                              <span className="hist-status confirmed">
+                                確定 {yen(m.rewardAmount ?? 0)}
+                              </span>
+                            ) : (
+                              <span className="hist-status pending">確認待ち</span>
+                            )}
+                          </div>
+
+                          {/* 管理者の納品確認フォーム */}
+                          {isOwner && confirmingId === m.id && (
+                            <div className="confirm-deliverable">
+                              <div className="task-form-row">
+                                <label>
+                                  報酬額（円）
+                                  <input
+                                    type="number"
+                                    min={0}
+                                    step={500}
+                                    value={confAmount}
+                                    onChange={(e) => setConfAmount(e.target.value)}
+                                  />
+                                </label>
+                              </div>
+                              <label className="check-line">
+                                <input
+                                  type="checkbox"
+                                  checked={confDateSet}
+                                  onChange={(e) => setConfDateSet(e.target.checked)}
+                                />
+                                納品日を設定する
+                              </label>
+                              {confDateSet && (
+                                <input
+                                  type="date"
+                                  value={confDate}
+                                  onChange={(e) => setConfDate(e.target.value)}
+                                />
+                              )}
+                              <div className="material-add-actions">
+                                <button className="ghost mini" onClick={() => setConfirmingId(null)}>
+                                  キャンセル
+                                </button>
+                                <button
+                                  className="primary mini"
+                                  onClick={() => confirmDeliverable(m.id, m.assigneeId, m.title)}
+                                >
+                                  確定する
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                        <div className="deliverable-actions">
+                          {isOwner && confirmingId !== m.id && (
+                            <button className="ghost mini" onClick={() => openConfirm(m)}>
+                              {confirmed ? "再確認" : "納品確認"}
+                            </button>
+                          )}
+                          <button
+                            className="material-del"
+                            title="削除"
+                            onClick={() => {
+                              if (confirm("この納品物を削除しますか？")) {
+                                deleteMaterial(m.id);
+                                refreshMats();
+                              }
+                            }}
+                          >
+                            ×
+                          </button>
                         </div>
                       </div>
-                      <button
-                        className="material-del"
-                        title="削除"
-                        onClick={() => {
-                          if (confirm("この納品物を削除しますか？")) {
-                            deleteMaterial(m.id);
-                            refreshMats();
-                          }
-                        }}
-                      >
-                        ×
-                      </button>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </>
             )}

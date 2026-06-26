@@ -414,6 +414,20 @@ label input, label select, label textarea { margin-top: 6px; font-weight: 400; }
 .project-detail-actions .ghost.mini.on { background: var(--primary); color: #fff; border-color: var(--primary); }
 .material-add-head { display: flex; align-items: center; justify-content: space-between; }
 .material-add-head .material-head { margin: 0; }
+.material-title.plain { color: var(--text); font-weight: 600; }
+.deliverable-row { align-items: flex-start; }
+.deliverable-actions { display: flex; flex-direction: column; gap: 6px; align-items: flex-end; flex-shrink: 0; }
+.deliverable-status { margin-top: 5px; }
+.confirm-deliverable {
+  margin-top: 8px;
+  padding: 10px;
+  background: var(--primary-light);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
 .project-detail-desc { font-size: 13.5px; color: var(--text-2); white-space: pre-wrap; margin: 4px 0 12px; }
 .assignee-pick { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 4px; }
 

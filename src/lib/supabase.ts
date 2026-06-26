@@ -270,6 +270,9 @@ const toDbMaterial = (m: ProjectMaterial) => ({
   media_type: m.mediaType ?? null,
   assignee_id: m.assigneeId ?? null,
   delivered_at: m.deliveredAt ?? null,
+  del_status: m.delStatus ?? null,
+  reward_amount: m.rewardAmount ?? null,
+  confirmed_at: m.confirmedAt ?? null,
 })
 
 const fromDbMaterial = (r: any): ProjectMaterial => ({
@@ -286,6 +289,9 @@ const fromDbMaterial = (r: any): ProjectMaterial => ({
   mediaType: r.media_type ?? undefined,
   assigneeId: r.assignee_id ?? undefined,
   deliveredAt: r.delivered_at ?? undefined,
+  delStatus: r.del_status ?? undefined,
+  rewardAmount: r.reward_amount ?? undefined,
+  confirmedAt: r.confirmed_at ?? undefined,
 })
 
 // ---- Sync helper: 行ごとに upsert（全削除はしない＝データ消失を防ぐ） ----
