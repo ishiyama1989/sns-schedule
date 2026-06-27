@@ -122,11 +122,11 @@ export default function MyPay({ me }: { me: User }) {
       const e = eventById[a.eventId];
       const d = e ? e.date.replace(/-/g, "/") : "";
       const t = e?.title ?? "報酬";
-      receiptLines.push({ date: d, title: t, hours: a.hours, amount: a.workAmount ?? a.amount });
+      receiptLines.push({ date: d, title: t, hours: a.hours, amount: a.amount });
       if (a.expense && a.expense > 0)
-        receiptLines.push({ date: d, title: `${t}（交通費）`, hours: 0, amount: a.expense });
+        receiptLines.push({ date: "", title: `　└ 交通費`, hours: 0, amount: a.expense });
       for (const it of a.extraItems ?? [])
-        if (it.amount) receiptLines.push({ date: d, title: `${t}（${it.name}）`, hours: 0, amount: it.amount });
+        if (it.amount) receiptLines.push({ date: "", title: `　└ ${it.name}`, hours: 0, amount: it.amount });
     }
     for (const t of vTasks) {
       receiptLines.push({
@@ -279,38 +279,25 @@ export default function MyPay({ me }: { me: User }) {
             </tr>
           ) : (
             <>
-              {approvedInQ.flatMap((a) => {
+              {approvedInQ.map((a) => {
                 const e = eventById[a.eventId];
                 const date = e ? e.date.replace(/-/g, "/") : "—";
                 const title = e?.title ?? "報酬";
-                const rows = [
+                const parts: string[] = [];
+                if (a.workAmount) parts.push(`稼働 ${yen(a.workAmount)}`);
+                if (a.expense && a.expense > 0) parts.push(`交通費 ${yen(a.expense)}`);
+                for (const it of a.extraItems ?? []) if (it.amount) parts.push(`${it.name} ${yen(it.amount)}`);
+                return (
                   <tr key={a.id}>
                     <td>{date}</td>
-                    <td>{title}</td>
+                    <td>
+                      {title}
+                      {parts.length > 0 && <div className="breakdown-note">{parts.join("　/　")}</div>}
+                    </td>
                     <td className="muted">{e ? EVENT_TYPE_LABEL[e.type] : "—"}</td>
-                    <td className="amount">{yen(a.workAmount ?? a.amount)}</td>
-                  </tr>,
-                ];
-                if (a.expense && a.expense > 0)
-                  rows.push(
-                    <tr key={a.id + ":exp"}>
-                      <td>{date}</td>
-                      <td>{title}</td>
-                      <td className="muted">交通費</td>
-                      <td className="amount">{yen(a.expense)}</td>
-                    </tr>
-                  );
-                for (const [i, it] of (a.extraItems ?? []).entries())
-                  if (it.amount)
-                    rows.push(
-                      <tr key={`${a.id}:item${i}`}>
-                        <td>{date}</td>
-                        <td>{title}</td>
-                        <td className="muted">{it.name}</td>
-                        <td className="amount">{yen(it.amount)}</td>
-                      </tr>
-                    );
-                return rows;
+                    <td className="amount">{yen(a.amount)}</td>
+                  </tr>
+                );
               })}
               {vTasks.map((t) => (
                 <tr key={t.id}>
