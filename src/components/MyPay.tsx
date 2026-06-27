@@ -147,7 +147,7 @@ export default function MyPay({ me }: { me: User }) {
       issuedDate: todayStr().replace(/-/g, "/"),
       issuedTo: issuedTo.trim(),
       honorific: HONORIFIC[recipientType],
-      issuerName: me.name,
+      issuerName: me.receiptName?.trim() || me.name,
       issuerInfo: {
         postalCode: me.postalCode,
         address: me.address,

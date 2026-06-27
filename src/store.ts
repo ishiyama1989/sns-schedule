@@ -122,6 +122,7 @@ export function registerUser(input: {
 export function updateUserProfile(
   userId: string,
   fields: {
+    receiptName?: string;
     postalCode?: string;
     address?: string;
     phone?: string;
@@ -135,6 +136,7 @@ export function updateUserProfile(
       if (u.id !== userId) return u;
       updated = {
         ...u,
+        receiptName: fields.receiptName?.trim() || undefined,
         postalCode: fields.postalCode?.trim() || undefined,
         address: fields.address?.trim() || undefined,
         phone: fields.phone?.trim() || undefined,

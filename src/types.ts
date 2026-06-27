@@ -20,6 +20,7 @@ export interface User {
   role: Role;
   hourlyRate: number; // 時給（円）。オーナーが設定
   // プロフィール（任意・領収書に反映）
+  receiptName?: string; // 領収書の発行者名（未設定なら表示名を使用）
   postalCode?: string;
   address?: string;
   phone?: string;
