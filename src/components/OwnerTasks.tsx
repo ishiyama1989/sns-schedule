@@ -23,7 +23,14 @@ export default function OwnerTasks({ me }: { me: User }) {
   const [filter, setFilter] = useState<FilterStatus>("all");
   const [showForm, setShowForm] = useState(false);
 
-  const tasks = useMemo(() => getVideoTasks(), [version]);
+  const today = new Date().toISOString().slice(0, 10);
+
+  const tasks = useMemo(() => {
+    // 取り消し済みで cancelledAt が昨日以前のものは完全非表示
+    return getVideoTasks().filter(
+      (t) => !(t.status === "cancelled" && (!t.cancelledAt || t.cancelledAt < today))
+    );
+  }, [version, today]);
   const members = useMemo(() => getMembers(), [version]);
 
   const filtered = useMemo(() => {
@@ -42,8 +49,6 @@ export default function OwnerTasks({ me }: { me: User }) {
   function refresh() {
     setVersion((v) => v + 1);
   }
-
-  const today = new Date().toISOString().slice(0, 10);
 
   return (
     <div className="tasks-view">
@@ -151,7 +156,7 @@ export default function OwnerTasks({ me }: { me: User }) {
                       className="ghost danger small"
                       onClick={() => {
                         if (confirm("この依頼を取り消しますか？")) {
-                          updateVideoTask(t.id, { status: "cancelled" });
+                          updateVideoTask(t.id, { status: "cancelled", cancelledAt: today });
                           refresh();
                         }
                       }}
@@ -166,7 +171,7 @@ export default function OwnerTasks({ me }: { me: User }) {
                     <button
                       className="ghost mini"
                       onClick={() => {
-                        updateVideoTask(t.id, { status: "accepted" });
+                        updateVideoTask(t.id, { status: "accepted", cancelledAt: undefined });
                         refresh();
                       }}
                     >

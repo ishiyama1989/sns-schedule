@@ -24,10 +24,13 @@ export default function Requests({ me }: { me: User }) {
   const requests = requestsForUser(me.id);
   const users = getUsers();
 
+  const today = new Date().toISOString().slice(0, 10);
+
   const videoTasks = useMemo(
     () =>
       getVideoTasks()
         .filter((t) => t.toUserId === me.id)
+        .filter((t) => !(t.status === "cancelled" && (!t.cancelledAt || t.cancelledAt < today)))
         .sort((a, b) => (a.deadline < b.deadline ? -1 : 1)),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [version]

@@ -200,6 +200,7 @@ const toDbVideoTask = (t: VideoTask) => ({
   delivery_note: t.deliveryNote ?? null,
   submitted_at: t.submittedAt ?? null,
   completed_at: t.completedAt ?? null,
+  cancelled_at: t.cancelledAt ?? null,
 })
 
 const fromDbVideoTask = (r: any): VideoTask => ({
@@ -216,6 +217,7 @@ const fromDbVideoTask = (r: any): VideoTask => ({
   deliveryNote: r.delivery_note ?? undefined,
   submittedAt: r.submitted_at ?? undefined,
   completedAt: r.completed_at ?? undefined,
+  cancelledAt: r.cancelled_at ?? undefined,
 })
 
 const toDbEventApproval = (a: EventApproval) => ({
