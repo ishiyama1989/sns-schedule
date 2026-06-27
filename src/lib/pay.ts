@@ -95,7 +95,6 @@ export interface HistoryRow {
   date: string; // "YYYY-MM-DD"
   title: string;
   typeLabel: string;
-  location: string;
   hours: number; // 動画は0
   amount: number | null; // 未確定/報酬なしは null
   status: HistoryStatus;
@@ -152,7 +151,6 @@ export function buildWorkHistory(
       date: d.deliveredAt ?? d.confirmedAt ?? d.createdAt,
       title: d.title,
       typeLabel: "納品物",
-      location: "—",
       hours: 0,
       amount: d.rewardAmount ?? 0,
       status: "confirmed",
@@ -173,7 +171,6 @@ export function buildWorkHistory(
         date: e.date,
         title: e.title,
         typeLabel: HIST_TYPE_LABEL[e.type] ?? e.type,
-        location: e.location || "—",
         hours: appr.hours,
         amount: appr.workAmount ?? appr.amount,
         status,
@@ -185,7 +182,6 @@ export function buildWorkHistory(
           date: e.date,
           title: `${e.title}（交通費）`,
           typeLabel: "交通費",
-          location: "—",
           hours: 0,
           amount: appr.expense,
           status,
@@ -198,7 +194,6 @@ export function buildWorkHistory(
           date: e.date,
           title: `${e.title}（${it.name}）`,
           typeLabel: "その他",
-          location: "—",
           hours: 0,
           amount: it.amount,
           status,
@@ -211,7 +206,6 @@ export function buildWorkHistory(
         date: e.date,
         title: e.title,
         typeLabel: HIST_TYPE_LABEL[e.type] ?? e.type,
-        location: e.location || "—",
         hours: hoursBetween(e.start, e.end),
         amount: null,
         status,
@@ -228,7 +222,6 @@ export function buildWorkHistory(
       date: d,
       title: t.title,
       typeLabel: "動画編集",
-      location: "—",
       hours: 0,
       amount: t.amount,
       status: "confirmed",
