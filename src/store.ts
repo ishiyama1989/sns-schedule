@@ -11,6 +11,7 @@ import type {
 } from "./types";
 import type { EventApproval, Project, ProjectMaterial } from "./types";
 import {
+  supabase,
   syncUsers,
   syncEvents,
   syncAvailability,
