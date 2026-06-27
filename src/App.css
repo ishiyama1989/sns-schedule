@@ -1364,8 +1364,9 @@ label input, label select, label textarea { margin-top: 6px; font-weight: 400; }
 }
 .task-card:hover { box-shadow: var(--shadow); }
 .task-card.status-submitted { border-color: rgba(245,158,11,0.5); background: #fffbf0; }
-.task-card.status-completed { border-color: rgba(255,122,89,0.3); opacity: 0.75; }
-.task-card.status-rejected  { opacity: 0.6; }
+.task-card.status-completed  { border-color: rgba(255,122,89,0.3); opacity: 0.75; }
+.task-card.status-rejected   { opacity: 0.6; }
+.task-card.status-cancelled  { opacity: 0.55; }
 
 .task-card-head {
   display: flex;
@@ -1383,11 +1384,12 @@ label input, label select, label textarea { margin-top: 6px; font-weight: 400; }
   letter-spacing: 0.03em;
   white-space: nowrap;
 }
-.task-status-tag.pending   { background: #fef3c7; color: #b45309; }
-.task-status-tag.accepted  { background: #dbeafe; color: #1d4ed8; }
-.task-status-tag.submitted { background: #fed7aa; color: #c2410c; }
-.task-status-tag.completed { background: #d1fae5; color: #065f46; }
-.task-status-tag.rejected  { background: #fce7f3; color: #9d174d; }
+.task-status-tag.pending    { background: #fef3c7; color: #b45309; }
+.task-status-tag.accepted   { background: #dbeafe; color: #1d4ed8; }
+.task-status-tag.submitted  { background: #fed7aa; color: #c2410c; }
+.task-status-tag.completed  { background: #d1fae5; color: #065f46; }
+.task-status-tag.rejected   { background: #fce7f3; color: #9d174d; }
+.task-status-tag.cancelled  { background: #f3f4f6; color: #6b7280; }
 
 .task-assignee-name { font-size: 13px; font-weight: 600; color: var(--primary); }
 .task-deadline-label { font-size: 12px; color: var(--muted); margin-left: auto; white-space: nowrap; }
@@ -1420,6 +1422,7 @@ label input, label select, label textarea { margin-top: 6px; font-weight: 400; }
 .task-delivery-note { font-size: 13px; color: var(--text-2); margin: 6px 0; white-space: pre-wrap; }
 .task-delivery-actions { display: flex; gap: 8px; margin-top: 12px; }
 .task-completed-note { font-size: 12px; margin-top: 8px; }
+.task-cancel-row { margin-top: 12px; display: flex; justify-content: flex-end; }
 
 .task-form-row { display: flex; gap: 12px; }
 .task-form-row label { flex: 1; }

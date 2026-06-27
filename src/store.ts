@@ -561,12 +561,14 @@ export function addRecipient(
   syncRecipients(all);
 }
 
-export function deleteRecipient(id: string): void {
-  const remaining = read<Recipient[]>(KEYS.recipients, []).filter(
-    (r) => r.id !== id
-  );
-  write(KEYS.recipients, remaining);
-  deleteRemote("recipients", { id });
+export async function deleteRecipient(id: string): Promise<void> {
+  const all = read<Recipient[]>(KEYS.recipients, []);
+  write(KEYS.recipients, all.filter((r) => r.id !== id));
+  const { error } = await supabase.from("recipients").delete().eq("id", id);
+  if (error) {
+    write(KEYS.recipients, all);
+    throw error;
+  }
 }
 
 // ---- 動画編集依頼 ----

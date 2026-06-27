@@ -42,7 +42,7 @@ export default function Requests({ me }: { me: User }) {
   const pendingVideo = videoTasks.filter((t) => t.status === "pending");
   const activeVideo = videoTasks.filter((t) => t.status === "accepted");
   const historyVideo = videoTasks.filter((t) =>
-    (["submitted", "completed", "rejected"] as VideoTaskStatus[]).includes(t.status)
+    (["submitted", "completed", "rejected", "cancelled"] as VideoTaskStatus[]).includes(t.status)
   );
 
   const hasVideo =
