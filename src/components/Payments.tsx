@@ -97,14 +97,16 @@ export default function Payments() {
     const itemsSum = items.reduce((s, it) => s + (Number(it.amount) || 0), 0);
     const amount = work + expense + itemsSum;
 
-    // 内訳をメモに記録
-    const parts: string[] = [];
-    if (expense > 0) parts.push(`交通費 ${yen(expense)}`);
-    for (const it of items)
-      if (Number(it.amount)) parts.push(`${it.name.trim() || "その他"} ${yen(Number(it.amount))}`);
-    const note = parts.length ? parts.join(" / ") : undefined;
+    const extraItems = items.map((it) => ({
+      name: it.name.trim() || "その他",
+      amount: Number(it.amount) || 0,
+    }));
 
-    requestEventApproval(e.id, userId, hours, amount, note);
+    requestEventApproval(e.id, userId, hours, amount, undefined, {
+      workAmount: work,
+      expense,
+      extraItems,
+    });
     sendPushToUsers(
       [userId],
       "報酬の承認依頼が届きました",
@@ -176,9 +178,9 @@ export default function Payments() {
                   </div>
                   {e.note && <div className="approval-card-note">{e.note}</div>}
                 </div>
-                <div className="approval-card-action">
+                <div className="approval-card-form">
                   <label className="approval-amount-label">
-                    稼働時間（h）
+                    稼働時間（H）
                     <input
                       type="number"
                       min={0}
@@ -213,12 +215,13 @@ export default function Payments() {
                     />
                   </label>
 
-                  <div className="approval-extra-items">
+                  <div className="approval-extra-col">
+                    <span className="approval-extra-label">その他の項目</span>
                     {getItems(key).map((it, i) => (
                       <div key={i} className="approval-item-row">
                         <input
                           className="item-name"
-                          placeholder="品目名（例: 機材費）"
+                          placeholder="品目名（例: 消耗品費・材料費）"
                           value={it.name}
                           onChange={(ev) => updateItem(key, i, "name", ev.target.value)}
                         />
@@ -237,31 +240,31 @@ export default function Payments() {
                       </div>
                     ))}
                     <button className="ghost mini" onClick={() => addItem(key)}>
-                      ＋ その他の項目を追加
+                      ＋ 項目を追加
                     </button>
                   </div>
 
-                  <div className="approval-total-line">
-                    合計{" "}
-                    <strong>
-                      {yen((Number(amountVal) || 0) + extraTotal(key))}
-                    </strong>
+                  <div className="approval-foot">
+                    <span className="approval-total-line">
+                      合計 <strong>{yen((Number(amountVal) || 0) + extraTotal(key))}</strong>
+                    </span>
+                    <div className="approval-btns">
+                      <button
+                        className="ghost mini"
+                        onClick={() => {
+                          if (confirm("この予定を報酬なし（対象外）にしますか？")) {
+                            setEventReward(e.id, false);
+                            setVersion((v) => v + 1);
+                          }
+                        }}
+                      >
+                        報酬なし
+                      </button>
+                      <button className="primary mini" onClick={() => send(e, userId)}>
+                        承認依頼を送る
+                      </button>
+                    </div>
                   </div>
-
-                  <button className="primary" onClick={() => send(e, userId)}>
-                    承認依頼を送る
-                  </button>
-                  <button
-                    className="ghost mini"
-                    onClick={() => {
-                      if (confirm("この予定を報酬なし（対象外）にしますか？")) {
-                        setEventReward(e.id, false);
-                        setVersion((v) => v + 1);
-                      }
-                    }}
-                  >
-                    報酬なしにする
-                  </button>
                 </div>
               </div>
             );

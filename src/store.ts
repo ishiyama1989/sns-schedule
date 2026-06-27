@@ -2,6 +2,7 @@ import type {
   AppRequest,
   Availability,
   CommentTemplate,
+  ExtraItem,
   PayConfirmation,
   Recipient,
   RecipientType,
@@ -629,7 +630,8 @@ export function requestEventApproval(
   userId: string,
   hours: number,
   amount: number,
-  note?: string
+  note?: string,
+  breakdown?: { workAmount?: number; expense?: number; extraItems?: ExtraItem[] }
 ): void {
   const list = getEventApprovals();
   const idx = list.findIndex(
@@ -642,6 +644,9 @@ export function requestEventApproval(
     hours,
     amount: Math.round(amount) || 0,
     note: note?.trim() || undefined,
+    workAmount: breakdown?.workAmount,
+    expense: breakdown?.expense,
+    extraItems: breakdown?.extraItems,
     status: "requested",
     requestedAt: today(),
   };

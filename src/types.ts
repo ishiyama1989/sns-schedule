@@ -109,16 +109,24 @@ export interface PayConfirmation {
 // 予定ごとの報酬承認（予定が過ぎる→管理者が承認依頼→メンバーが承認→報酬確定）
 export type EventApprovalStatus = "requested" | "approved" | "rejected";
 
+export interface ExtraItem {
+  name: string;
+  amount: number;
+}
+
 export interface EventApproval {
   id: string;
-  eventId: string; // 対象の予定
-  userId: string; // 対象メンバー
-  hours: number; // 稼働時間
-  amount: number; // 報酬額（管理者が調整可能）
+  eventId: string;
+  userId: string;
+  hours: number;
+  amount: number;
   note?: string;
-  status: EventApprovalStatus; // requested=承認依頼中 / approved=メンバー承認済み
-  requestedAt: string; // 管理者が依頼した日
-  approvedAt?: string; // メンバーが承認した日
+  workAmount?: number;
+  expense?: number;
+  extraItems?: ExtraItem[];
+  status: EventApprovalStatus;
+  requestedAt: string;
+  approvedAt?: string;
 }
 
 export const EVENT_APPROVAL_STATUS_LABEL: Record<EventApprovalStatus, string> = {
