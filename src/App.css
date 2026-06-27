@@ -520,6 +520,7 @@ label input, label select, label textarea { margin-top: 6px; font-weight: 400; }
 .approval-total-line { font-size: 13px; color: var(--text-2); white-space: nowrap; }
 .approval-total-line strong { font-size: 17px; color: var(--primary-d); }
 .approval-btns { display: flex; gap: 6px; }
+.breakdown-note { font-size: 11px; color: var(--muted); margin-top: 2px; }
 .approval-pending-box {
   background: #fff8ee;
   border: 1px solid rgba(255,122,89,0.2);
