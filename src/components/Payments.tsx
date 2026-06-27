@@ -97,14 +97,16 @@ export default function Payments() {
     const itemsSum = items.reduce((s, it) => s + (Number(it.amount) || 0), 0);
     const amount = work + expense + itemsSum;
 
-    // 内訳をメモに記録
-    const parts: string[] = [];
-    if (expense > 0) parts.push(`交通費 ${yen(expense)}`);
-    for (const it of items)
-      if (Number(it.amount)) parts.push(`${it.name.trim() || "その他"} ${yen(Number(it.amount))}`);
-    const note = parts.length ? parts.join(" / ") : undefined;
+    const extraItems = items.map((it) => ({
+      name: it.name.trim() || "その他",
+      amount: Number(it.amount) || 0,
+    }));
 
-    requestEventApproval(e.id, userId, hours, amount, note);
+    requestEventApproval(e.id, userId, hours, amount, undefined, {
+      workAmount: work,
+      expense,
+      extraItems,
+    });
     sendPushToUsers(
       [userId],
       "報酬の承認依頼が届きました",

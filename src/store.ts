@@ -622,18 +622,24 @@ export function approvalForEvent(
   );
 }
 
-// 管理者：予定の報酬をメンバーに承認依頼する（金額調整可）
+// 管理者：予定の報酬をメンバーに承認依頼する（内訳付き）
 export function requestEventApproval(
   eventId: string,
   userId: string,
   hours: number,
   amount: number,
-  note?: string
+  note?: string,
+  breakdown?: {
+    workAmount?: number;
+    expense?: number;
+    extraItems?: { name: string; amount: number }[];
+  }
 ): void {
   const list = getEventApprovals();
   const idx = list.findIndex(
     (a) => a.eventId === eventId && a.userId === userId
   );
+  const items = (breakdown?.extraItems ?? []).filter((it) => it.amount);
   const rec: EventApproval = {
     id: idx >= 0 ? list[idx].id : uid(),
     eventId,
@@ -641,6 +647,9 @@ export function requestEventApproval(
     hours,
     amount: Math.round(amount) || 0,
     note: note?.trim() || undefined,
+    workAmount: breakdown?.workAmount,
+    expense: breakdown?.expense || undefined,
+    extraItems: items.length ? items : undefined,
     status: "requested",
     requestedAt: today(),
   };

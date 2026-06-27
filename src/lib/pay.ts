@@ -165,36 +165,58 @@ export function buildWorkHistory(
     const appr = approvals.find(
       (a) => a.eventId === e.id && a.userId === userId && a.status !== "rejected"
     );
-    let status: HistoryStatus;
-    let hours: number;
-    let amount: number | null;
-    if (appr && appr.status === "approved") {
-      status = "confirmed";
-      hours = appr.hours;
-      amount = appr.amount;
-    } else if (appr && appr.status === "requested") {
-      status = "pending";
-      hours = appr.hours;
-      amount = appr.amount;
-    } else if (e.hasReward === false) {
-      status = "noreward";
-      hours = hoursBetween(e.start, e.end);
-      amount = null;
+    if (appr && (appr.status === "approved" || appr.status === "requested")) {
+      const status: HistoryStatus = appr.status === "approved" ? "confirmed" : "pending";
+      // 稼働報酬の行
+      rows.push({
+        id: e.id,
+        date: e.date,
+        title: e.title,
+        typeLabel: HIST_TYPE_LABEL[e.type] ?? e.type,
+        location: e.location || "—",
+        hours: appr.hours,
+        amount: appr.workAmount ?? appr.amount,
+        status,
+      });
+      // 交通費・その他は別行で計上
+      if (appr.expense && appr.expense > 0) {
+        rows.push({
+          id: e.id + ":exp",
+          date: e.date,
+          title: `${e.title}（交通費）`,
+          typeLabel: "交通費",
+          location: "—",
+          hours: 0,
+          amount: appr.expense,
+          status,
+        });
+      }
+      for (const [i, it] of (appr.extraItems ?? []).entries()) {
+        if (!it.amount) continue;
+        rows.push({
+          id: `${e.id}:item${i}`,
+          date: e.date,
+          title: `${e.title}（${it.name}）`,
+          typeLabel: "その他",
+          location: "—",
+          hours: 0,
+          amount: it.amount,
+          status,
+        });
+      }
     } else {
-      status = "undetermined";
-      hours = hoursBetween(e.start, e.end);
-      amount = null;
+      const status: HistoryStatus = e.hasReward === false ? "noreward" : "undetermined";
+      rows.push({
+        id: e.id,
+        date: e.date,
+        title: e.title,
+        typeLabel: HIST_TYPE_LABEL[e.type] ?? e.type,
+        location: e.location || "—",
+        hours: hoursBetween(e.start, e.end),
+        amount: null,
+        status,
+      });
     }
-    rows.push({
-      id: e.id,
-      date: e.date,
-      title: e.title,
-      typeLabel: HIST_TYPE_LABEL[e.type] ?? e.type,
-      location: e.location || "—",
-      hours,
-      amount,
-      status,
-    });
   }
 
   for (const t of videoTasks) {
