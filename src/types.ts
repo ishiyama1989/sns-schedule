@@ -247,7 +247,7 @@ export const EVENT_TYPE_COLOR: Record<string, string> = {
 export const EVENT_TYPES: EventType[] = ["shooting", "meeting", "delivery", "other"];
 
 // 動画編集依頼（依頼管理機能）
-export type VideoTaskStatus = "pending" | "accepted" | "submitted" | "completed" | "rejected";
+export type VideoTaskStatus = "pending" | "accepted" | "submitted" | "completed" | "rejected" | "cancelled";
 
 export const VIDEO_TASK_STATUS_LABEL: Record<VideoTaskStatus, string> = {
   pending: "承認待ち",
@@ -255,6 +255,7 @@ export const VIDEO_TASK_STATUS_LABEL: Record<VideoTaskStatus, string> = {
   submitted: "納品確認待ち",
   completed: "完了",
   rejected: "却下",
+  cancelled: "取り消し済み",
 };
 
 export interface VideoTask {

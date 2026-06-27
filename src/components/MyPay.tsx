@@ -362,8 +362,12 @@ export default function MyPay({ me }: { me: User }) {
                     type="button"
                     className="recipient-del"
                     title="削除"
-                    onClick={() => {
-                      deleteRecipient(r.id);
+                    onClick={async () => {
+                      try {
+                        await deleteRecipient(r.id);
+                      } catch {
+                        alert("削除に失敗しました。もう一度お試しください。");
+                      }
                       setVersion((v) => v + 1);
                     }}
                   >

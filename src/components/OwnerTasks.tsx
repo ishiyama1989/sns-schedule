@@ -6,7 +6,7 @@ import { yen } from "../lib/date";
 
 type FilterStatus = VideoTaskStatus | "all";
 
-const STATUS_FILTERS: FilterStatus[] = ["all", "pending", "accepted", "submitted", "completed"];
+const STATUS_FILTERS: FilterStatus[] = ["all", "pending", "accepted", "submitted", "completed", "cancelled"];
 
 const FILTER_LABEL: Record<FilterStatus, string> = {
   all: "すべて",
@@ -15,6 +15,7 @@ const FILTER_LABEL: Record<FilterStatus, string> = {
   submitted: "納品確認",
   completed: "完了",
   rejected: "却下",
+  cancelled: "取り消し済み",
 };
 
 export default function OwnerTasks({ me }: { me: User }) {
@@ -80,7 +81,7 @@ export default function OwnerTasks({ me }: { me: User }) {
           {filtered.map((t) => {
             const member = members.find((m) => m.id === t.toUserId);
             const isOverdue =
-              t.deadline < today && !["completed", "rejected"].includes(t.status);
+              t.deadline < today && !["completed", "rejected", "cancelled"].includes(t.status);
             return (
               <div key={t.id} className={`task-card status-${t.status}`}>
                 <div className="task-card-head">
@@ -135,6 +136,22 @@ export default function OwnerTasks({ me }: { me: User }) {
                         納品完了
                       </button>
                     </div>
+                  </div>
+                )}
+
+                {(t.status === "pending" || t.status === "accepted") && (
+                  <div className="task-cancel-row">
+                    <button
+                      className="ghost danger small"
+                      onClick={() => {
+                        if (confirm("この依頼を取り消しますか？")) {
+                          updateVideoTask(t.id, { status: "cancelled" });
+                          refresh();
+                        }
+                      }}
+                    >
+                      取り消す
+                    </button>
                   </div>
                 )}
 
