@@ -271,4 +271,5 @@ export interface VideoTask {
   deliveryNote?: string;
   submittedAt?: string;
   completedAt?: string;
+  cancelledAt?: string;
 }
