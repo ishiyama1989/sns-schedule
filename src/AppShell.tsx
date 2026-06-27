@@ -22,6 +22,7 @@ function toUser(p: Profile): User {
     password: "",
     role: p.role,
     hourlyRate: p.hourlyRate,
+    receiptName: p.receiptName,
     postalCode: p.postalCode,
     address: p.address,
     phone: p.phone,

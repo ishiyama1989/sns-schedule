@@ -7,6 +7,7 @@ export interface Profile {
   name: string;
   role: "owner" | "member";
   hourlyRate: number;
+  receiptName?: string;
   postalCode?: string;
   address?: string;
   phone?: string;
@@ -64,6 +65,7 @@ export async function getMyProfile(): Promise<Profile | null> {
     name: data.name,
     role: data.role,
     hourlyRate: data.hourly_rate ?? 0,
+    receiptName: data.receipt_name ?? undefined,
     postalCode: data.postal_code ?? undefined,
     address: data.address ?? undefined,
     phone: data.phone ?? undefined,
