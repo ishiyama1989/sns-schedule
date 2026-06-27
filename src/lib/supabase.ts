@@ -306,6 +306,7 @@ const toDbProfile = (u: User) => ({
   name: u.name,
   role: u.role,
   hourly_rate: u.hourlyRate,
+  receipt_name: u.receiptName ?? null,
   postal_code: u.postalCode ?? null,
   address: u.address ?? null,
   phone: u.phone ?? null,
@@ -322,6 +323,7 @@ const fromDbProfile = (r: any): User => ({
   password: "", // SaaS版は Supabase Auth が管理（未使用）
   role: r.role,
   hourlyRate: r.hourly_rate ?? 0,
+  receiptName: r.receipt_name ?? undefined,
   postalCode: r.postal_code ?? undefined,
   address: r.address ?? undefined,
   phone: r.phone ?? undefined,

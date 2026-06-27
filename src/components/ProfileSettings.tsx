@@ -17,6 +17,7 @@ export default function ProfileSettings({
   me: User;
   onUpdated: (u: User) => void;
 }) {
+  const [receiptName, setReceiptName] = useState(me.receiptName ?? "");
   const [postalCode, setPostalCode] = useState(me.postalCode ?? "");
   const [address, setAddress] = useState(me.address ?? "");
   const [phone, setPhone] = useState(me.phone ?? "");
@@ -85,6 +86,7 @@ export default function ProfileSettings({
 
   function save() {
     const updated = updateUserProfile(me.id, {
+      receiptName,
       postalCode,
       address,
       phone,
@@ -149,6 +151,17 @@ export default function ProfileSettings({
       {me.role !== "owner" && (
         <div className="settings-card">
           <h3>プロフィール（領収書の発行者欄に表示）</h3>
+          <label>
+            発行者の名前
+            <input
+              value={receiptName}
+              onChange={(e) => {
+                setReceiptName(e.target.value);
+                setSaved(false);
+              }}
+              placeholder={`未設定なら表示名「${me.name}」が使われます`}
+            />
+          </label>
           <label>
             郵便番号
             <input
