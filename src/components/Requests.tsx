@@ -54,13 +54,9 @@ export default function Requests({ me }: { me: User }) {
 
   function submitDelivery(taskId: string) {
     const url = (deliveryUrls[taskId] ?? "").trim();
-    if (!url) {
-      alert("納品URLを入力してください");
-      return;
-    }
     updateVideoTask(taskId, {
       status: "submitted",
-      deliveryUrl: url,
+      deliveryUrl: url || undefined,
       deliveryNote: (deliveryNotes[taskId] ?? "").trim() || undefined,
       submittedAt: new Date().toISOString().slice(0, 10),
     });
