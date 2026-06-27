@@ -101,15 +101,21 @@ export default function OwnerTasks({ me }: { me: User }) {
 
                 {t.status === "submitted" && (
                   <div className="task-delivery-review">
-                    <div className="task-delivery-label">納品物URL</div>
-                    <a
-                      href={t.deliveryUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="task-delivery-url"
-                    >
-                      {t.deliveryUrl}
-                    </a>
+                    {t.deliveryUrl ? (
+                      <>
+                        <div className="task-delivery-label">納品物URL</div>
+                        <a
+                          href={t.deliveryUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="task-delivery-url"
+                        >
+                          {t.deliveryUrl}
+                        </a>
+                      </>
+                    ) : (
+                      <div className="task-delivery-label">（URLなし）</div>
+                    )}
                     {t.deliveryNote && (
                       <p className="task-delivery-note">{t.deliveryNote}</p>
                     )}
@@ -151,6 +157,20 @@ export default function OwnerTasks({ me }: { me: User }) {
                       }}
                     >
                       取り消す
+                    </button>
+                  </div>
+                )}
+
+                {t.status === "cancelled" && (
+                  <div className="task-cancel-row">
+                    <button
+                      className="ghost mini"
+                      onClick={() => {
+                        updateVideoTask(t.id, { status: "accepted" });
+                        refresh();
+                      }}
+                    >
+                      再開する
                     </button>
                   </div>
                 )}
