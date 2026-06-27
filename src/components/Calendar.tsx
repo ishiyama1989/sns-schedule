@@ -590,8 +590,9 @@ function DayPanel({
                       className="ghost danger"
                       onClick={() => {
                         if (confirm("この予定を削除しますか？")) {
-                          deleteEvent(e.id);
-                          onChange();
+                          deleteEvent(e.id).then(() => onChange()).catch(() => {
+                            alert("削除に失敗しました。もう一度お試しください。");
+                          });
                         }
                       }}
                     >

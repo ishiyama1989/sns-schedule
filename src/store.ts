@@ -255,9 +255,14 @@ export function upsertEvent(ev: ScheduleEvent): void {
   saveEvents(events);
 }
 
-export function deleteEvent(id: string): void {
-  write(KEYS.events, getEvents().filter((e) => e.id !== id));
-  deleteRemote("schedule_events", { id });
+export async function deleteEvent(id: string): Promise<void> {
+  const all = getEvents();
+  write(KEYS.events, all.filter((e) => e.id !== id));
+  const { error } = await supabase.from("schedule_events").delete().eq("id", id);
+  if (error) {
+    write(KEYS.events, all);
+    throw error;
+  }
 }
 
 // 予定の報酬有無を切り替える
