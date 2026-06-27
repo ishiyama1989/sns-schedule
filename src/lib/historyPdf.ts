@@ -30,7 +30,6 @@ export function openWorkHistoryPdf(data: {
         <td>${esc(r.date.replace(/-/g, "/"))}</td>
         <td>${esc(r.title)}</td>
         <td>${esc(r.typeLabel)}</td>
-        <td>${esc(r.location)}</td>
         <td class="num">${r.hours > 0 ? r.hours.toFixed(1) + "h" : "—"}</td>
         <td class="num">${r.amount != null ? yen(r.amount) : "—"}</td>
         <td class="status status-${r.status}">${HISTORY_STATUS_LABEL[r.status]}</td>
@@ -71,10 +70,10 @@ export function openWorkHistoryPdf(data: {
   </div>
   <table>
     <thead><tr>
-      <th>日付</th><th>活動内容</th><th>種別</th><th>場所</th>
+      <th>日付</th><th>活動内容</th><th>種別</th>
       <th class="num">稼働</th><th class="num">報酬</th><th>状態</th>
     </tr></thead>
-    <tbody>${rows || `<tr><td colspan="7" style="color:#999">この期間の活動はありません。</td></tr>`}</tbody>
+    <tbody>${rows || `<tr><td colspan="6" style="color:#999">この期間の活動はありません。</td></tr>`}</tbody>
   </table>
   <div class="foot">発行日: ${new Date().toLocaleDateString("ja-JP")}</div>
   <script>window.onload = () => { window.focus(); window.print(); };</script>
