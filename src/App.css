@@ -537,6 +537,12 @@ label input, label select, label textarea { margin-top: 6px; font-weight: 400; }
   gap: 3px;
 }
 .approval-amount-label input { width: 110px; text-align: right; }
+.approval-extra-items { display: flex; flex-direction: column; gap: 6px; margin: 4px 0; align-items: flex-end; }
+.approval-item-row { display: flex; gap: 6px; align-items: center; }
+.approval-item-row .item-name { width: 130px; font-size: 12px; }
+.approval-item-row .item-amount { width: 80px; font-size: 12px; text-align: right; }
+.approval-total-line { font-size: 13px; color: var(--text-2); }
+.approval-total-line strong { font-size: 16px; color: var(--primary-d); }
 .approval-pending-box {
   background: #fff8ee;
   border: 1px solid rgba(255,122,89,0.2);

@@ -36,12 +36,37 @@ export default function Payments() {
 
   // 確認待ち（まだ承認依頼を送っていない過ぎた予定）
   const awaiting = useMemo(() => eventsAwaitingAdmin(), [version]);
-  // 承認依頼を送る前の「時間」と「金額」の編集用
+  // 承認依頼を送る前の「時間」「金額」「交通費」「その他項目」の編集用
   const [hoursMap, setHoursMap] = useState<Record<string, string>>({});
   const [amounts, setAmounts] = useState<Record<string, string>>({});
+  const [expenseMap, setExpenseMap] = useState<Record<string, string>>({});
+  const [itemsMap, setItemsMap] = useState<
+    Record<string, { name: string; amount: string }[]>
+  >({});
 
   function amountKey(eventId: string, userId: string) {
     return `${eventId}:${userId}`;
+  }
+  function getItems(key: string) {
+    return itemsMap[key] ?? [];
+  }
+  function addItem(key: string) {
+    setItemsMap((m) => ({ ...m, [key]: [...(m[key] ?? []), { name: "", amount: "" }] }));
+  }
+  function updateItem(key: string, i: number, field: "name" | "amount", val: string) {
+    setItemsMap((m) => {
+      const arr = [...(m[key] ?? [])];
+      arr[i] = { ...arr[i], [field]: val };
+      return { ...m, [key]: arr };
+    });
+  }
+  function removeItem(key: string, i: number) {
+    setItemsMap((m) => ({ ...m, [key]: (m[key] ?? []).filter((_, idx) => idx !== i) }));
+  }
+  function extraTotal(key: string) {
+    const exp = Number(expenseMap[key] || 0) || 0;
+    const items = (itemsMap[key] ?? []).reduce((s, it) => s + (Number(it.amount) || 0), 0);
+    return exp + items;
   }
   function defaultHours(e: ScheduleEvent) {
     return hoursBetween(e.start, e.end);
@@ -65,9 +90,21 @@ export default function Payments() {
     const key = amountKey(e.id, userId);
     const hours =
       hoursMap[key] !== undefined ? Number(hoursMap[key]) || 0 : defaultHours(e);
-    const amount =
+    const work =
       amounts[key] !== undefined ? Number(amounts[key]) || 0 : defaultAmount(e, userId);
-    requestEventApproval(e.id, userId, hours, amount);
+    const expense = Number(expenseMap[key] || 0) || 0;
+    const items = getItems(key).filter((it) => it.name.trim() || Number(it.amount));
+    const itemsSum = items.reduce((s, it) => s + (Number(it.amount) || 0), 0);
+    const amount = work + expense + itemsSum;
+
+    // 内訳をメモに記録
+    const parts: string[] = [];
+    if (expense > 0) parts.push(`交通費 ${yen(expense)}`);
+    for (const it of items)
+      if (Number(it.amount)) parts.push(`${it.name.trim() || "その他"} ${yen(Number(it.amount))}`);
+    const note = parts.length ? parts.join(" / ") : undefined;
+
+    requestEventApproval(e.id, userId, hours, amount, note);
     sendPushToUsers(
       [userId],
       "報酬の承認依頼が届きました",
@@ -162,6 +199,55 @@ export default function Payments() {
                       }
                     />
                   </label>
+                  <label className="approval-amount-label">
+                    交通費（円）
+                    <input
+                      type="number"
+                      min={0}
+                      step={100}
+                      value={expenseMap[key] ?? ""}
+                      placeholder="0"
+                      onChange={(ev) =>
+                        setExpenseMap((m) => ({ ...m, [key]: ev.target.value }))
+                      }
+                    />
+                  </label>
+
+                  <div className="approval-extra-items">
+                    {getItems(key).map((it, i) => (
+                      <div key={i} className="approval-item-row">
+                        <input
+                          className="item-name"
+                          placeholder="品目名（例: 機材費）"
+                          value={it.name}
+                          onChange={(ev) => updateItem(key, i, "name", ev.target.value)}
+                        />
+                        <input
+                          className="item-amount"
+                          type="number"
+                          min={0}
+                          step={100}
+                          placeholder="金額"
+                          value={it.amount}
+                          onChange={(ev) => updateItem(key, i, "amount", ev.target.value)}
+                        />
+                        <button className="material-del" title="削除" onClick={() => removeItem(key, i)}>
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                    <button className="ghost mini" onClick={() => addItem(key)}>
+                      ＋ その他の項目を追加
+                    </button>
+                  </div>
+
+                  <div className="approval-total-line">
+                    合計{" "}
+                    <strong>
+                      {yen((Number(amountVal) || 0) + extraTotal(key))}
+                    </strong>
+                  </div>
+
                   <button className="primary" onClick={() => send(e, userId)}>
                     承認依頼を送る
                   </button>
